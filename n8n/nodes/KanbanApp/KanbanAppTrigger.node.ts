@@ -1,10 +1,10 @@
-import {
+import type {
 	INodeType,
 	INodeTypeDescription,
 	IPollFunctions,
 	INodeExecutionData,
-	NodeOperationError,
 } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 
 import { kanbanApiRequest } from './GenericFunctions';
 
@@ -182,7 +182,8 @@ export class KanbanAppTrigger implements INodeType {
 
 			return returnData;
 		} catch (error) {
-			throw new NodeOperationError(this.getNode(), `Failed to poll for events: ${error.message}`);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			throw new NodeOperationError(this.getNode(), `Failed to poll for events: ${errorMessage}`);
 		}
 	}
 }
