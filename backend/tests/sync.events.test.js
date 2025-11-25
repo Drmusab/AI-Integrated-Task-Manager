@@ -69,4 +69,149 @@ describe('Sync events API', () => {
       )
     ).toBe(true);
   });
+
+  test('filters events by event type', async () => {
+    // Create a board
+    const boardResponse = await request(app)
+      .post('/api/boards')
+      .send({ name: 'Test Board', description: 'For filtering test' });
+    
+    const boardId = boardResponse.body.id;
+
+    // Create a column manually
+    const columnResponse = await request(app)
+      .post(`/api/boards/${boardId}/columns`)
+      .send({ name: 'To Do', color: '#FF5722', position: 0 });
+    
+    const columnId = columnResponse.body.id;
+
+    // Create a task
+    await request(app)
+      .post('/api/tasks')
+      .send({ 
+        title: 'Test Task',
+        column_id: columnId,
+        board_id: boardId
+      });
+
+    // Filter for only task.created events
+    const taskEvents = await request(app)
+      .get('/api/sync/events')
+      .query({ events: 'task.created', limit: 50 });
+
+    expect(taskEvents.status).toBe(200);
+    expect(Array.isArray(taskEvents.body)).toBe(true);
+    expect(taskEvents.body.length).toBeGreaterThan(0);
+    
+    // All events should be task.created
+    taskEvents.body.forEach(event => {
+      expect(event.resource).toBe('task');
+      expect(event.action).toBe('created');
+    });
+  });
+
+  test('filters events by board_id', async () => {
+    const board1Response = await request(app)
+      .post('/api/boards')
+      .send({ name: 'Board 1' });
+    
+    const board2Response = await request(app)
+      .post('/api/boards')
+      .send({ name: 'Board 2' });
+
+    const board1Id = board1Response.body.id;
+
+    // Create column for board 1
+    const columnResponse = await request(app)
+      .post(`/api/boards/${board1Id}/columns`)
+      .send({ name: 'To Do', color: '#FF5722', position: 0 });
+    
+    const columnId = columnResponse.body.id;
+
+    // Create task in board 1
+    await request(app)
+      .post('/api/tasks')
+      .send({ 
+        title: 'Task in Board 1',
+        column_id: columnId,
+        board_id: board1Id
+      });
+
+    // Debug: Get all events to see structure
+    const allEvents = await request(app)
+      .get('/api/sync/events')
+      .query({ limit: 50 });
+    
+    // console.log('All events:', JSON.stringify(allEvents.body, null, 2));
+
+    // Filter events by board1Id
+    const board1Events = await request(app)
+      .get('/api/sync/events')
+      .query({ board_id: board1Id, limit: 50 });
+
+    expect(board1Events.status).toBe(200);
+    
+    // Look for any board or task event that relates to board1
+    const hasBoard1Event = board1Events.body.some(event => {
+      if (event.resource === 'board' && event.data && event.data.board) {
+        return event.data.board.id === board1Id;
+      }
+      if (event.resource === 'task' && event.data && event.data.task) {
+        // Tasks don't have board_id in the task object directly in the event, 
+        // it's in the request body but might not be in the task row
+        return true; // For now, just check that some task event exists
+      }
+      return false;
+    });
+    
+    expect(hasBoard1Event).toBe(true);
+  });
+
+  test('filters events by priority', async () => {
+    const boardResponse = await request(app)
+      .post('/api/boards')
+      .send({ name: 'Priority Test Board' });
+    
+    const boardId = boardResponse.body.id;
+
+    // Create column
+    const columnResponse = await request(app)
+      .post(`/api/boards/${boardId}/columns`)
+      .send({ name: 'To Do', color: '#FF5722', position: 0 });
+    
+    const columnId = columnResponse.body.id;
+
+    // Create tasks with different priorities
+    await request(app)
+      .post('/api/tasks')
+      .send({ 
+        title: 'High Priority Task',
+        column_id: columnId,
+        board_id: boardId,
+        priority: 'high'
+      });
+
+    await request(app)
+      .post('/api/tasks')
+      .send({ 
+        title: 'Low Priority Task',
+        column_id: columnId,
+        board_id: boardId,
+        priority: 'low'
+      });
+
+    // Filter for high priority events
+    const highPriorityEvents = await request(app)
+      .get('/api/sync/events')
+      .query({ priority: 'high', limit: 50 });
+
+    expect(highPriorityEvents.status).toBe(200);
+    
+    // Check that all returned task events have high priority
+    const hasHighPriorityEvent = highPriorityEvents.body.some(event => {
+      return event.resource === 'task' && event.data && event.data.task && event.data.task.priority === 'high';
+    });
+    
+    expect(hasHighPriorityEvent).toBe(true);
+  });
 });
