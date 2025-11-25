@@ -29,38 +29,49 @@ router.get('/events', async (req, res) => {
   if (board_id) {
     const boardIdNum = parseInt(board_id, 10);
     
-    // Filter asynchronously because we need to lookup column->board mapping for tasks
-    const promises = filteredEvents.map(async (event) => {
+    // Collect all unique column IDs from task events to batch query
+    const columnIds = new Set();
+    filteredEvents.forEach(event => {
+      if (event.resource === 'task' && event.data && event.data.task && event.data.task.column_id) {
+        columnIds.add(event.data.task.column_id);
+      }
+    });
+    
+    // Batch query to get column->board mappings
+    const columnToBoardMap = {};
+    if (columnIds.size > 0) {
+      const placeholders = Array.from(columnIds).map(() => '?').join(',');
+      const columns = await new Promise((resolve, reject) => {
+        db.all(
+          `SELECT id, board_id FROM columns WHERE id IN (${placeholders})`,
+          Array.from(columnIds),
+          (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          }
+        );
+      });
+      columns.forEach(col => {
+        columnToBoardMap[col.id] = col.board_id;
+      });
+    }
+    
+    // Now filter events using the pre-computed map
+    filteredEvents = filteredEvents.filter(event => {
       // For board events, check the board.id directly
       if (event.resource === 'board' && event.data && event.data.board) {
         return event.data.board.id === boardIdNum;
       }
       
-      // For task events, lookup the board through the column
+      // For task events, use the pre-computed column->board mapping
       if (event.resource === 'task' && event.data && event.data.task) {
-        try {
-          const column = await new Promise((resolve, reject) => {
-            db.get(
-              'SELECT board_id FROM columns WHERE id = ?',
-              [event.data.task.column_id],
-              (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-              }
-            );
-          });
-          return column && column.board_id === boardIdNum;
-        } catch (error) {
-          return false;
-        }
+        const boardId = columnToBoardMap[event.data.task.column_id];
+        return boardId === boardIdNum;
       }
       
       // For other event types, check if data.board_id exists
       return event.data && event.data.board_id === boardIdNum;
     });
-    
-    const results = await Promise.all(promises);
-    filteredEvents = filteredEvents.filter((_, index) => results[index]);
   }
   
   // Filter by priority if specified

@@ -137,13 +137,6 @@ describe('Sync events API', () => {
         board_id: board1Id
       });
 
-    // Debug: Get all events to see structure
-    const allEvents = await request(app)
-      .get('/api/sync/events')
-      .query({ limit: 50 });
-    
-    // console.log('All events:', JSON.stringify(allEvents.body, null, 2));
-
     // Filter events by board1Id
     const board1Events = await request(app)
       .get('/api/sync/events')
