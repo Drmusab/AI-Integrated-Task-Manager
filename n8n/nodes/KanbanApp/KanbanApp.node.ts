@@ -1,12 +1,12 @@
-import {
+import type {
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-	NodeOperationError,
 	ILoadOptionsFunctions,
 	INodePropertyOptions,
 } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 
 import { kanbanApiRequest, kanbanApiRequestAllItems } from './GenericFunctions';
 
@@ -589,7 +589,7 @@ export class KanbanApp implements INodeType {
 		],
 	};
 
-	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[]> {
+	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 		const length = items.length;
@@ -824,8 +824,9 @@ export class KanbanApp implements INodeType {
 				returnData.push(...executionData);
 			} catch (error) {
 				if (this.continueOnFail()) {
+					const errorMessage = error instanceof Error ? error.message : String(error);
 					const executionData = this.helpers.constructExecutionMetaData(
-						this.helpers.returnJsonArray({ error: error.message }),
+						this.helpers.returnJsonArray({ error: errorMessage }),
 						{ itemData: { item: i } },
 					);
 					returnData.push(...executionData);
@@ -835,6 +836,6 @@ export class KanbanApp implements INodeType {
 			}
 		}
 
-		return returnData;
+		return [returnData];
 	}
 }
