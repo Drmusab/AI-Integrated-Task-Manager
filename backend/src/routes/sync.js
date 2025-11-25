@@ -33,21 +33,26 @@ router.get('/events', async (req, res) => {
     const columnIds = new Set();
     filteredEvents.forEach(event => {
       if (event.resource === 'task' && event.data && event.data.task && event.data.task.column_id) {
-        columnIds.add(event.data.task.column_id);
+        const colId = parseInt(event.data.task.column_id, 10);
+        // Only add valid integer column IDs
+        if (!isNaN(colId)) {
+          columnIds.add(colId);
+        }
       }
     });
     
     // Batch query to get column->board mappings
     const columnToBoardMap = {};
     if (columnIds.size > 0) {
-      const placeholders = Array.from(columnIds).map(() => '?').join(',');
+      const columnIdArray = Array.from(columnIds);
+      const placeholders = columnIdArray.map(() => '?').join(',');
       const columns = await new Promise((resolve, reject) => {
         db.all(
           `SELECT id, board_id FROM columns WHERE id IN (${placeholders})`,
-          Array.from(columnIds),
+          columnIdArray,
           (err, rows) => {
             if (err) reject(err);
-            else resolve(rows);
+            else resolve(rows || []);
           }
         );
       });
