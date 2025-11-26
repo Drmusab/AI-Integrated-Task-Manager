@@ -8,7 +8,8 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material';
 import {
   Add,
@@ -291,6 +292,26 @@ const Board = () => {
     }
   };
 
+  const handleDuplicateTask = async (task) => {
+    try {
+      const duplicatedTask = {
+        ...task,
+        id: undefined,
+        title: `${task.title} (Copy)`,
+        created_at: undefined,
+        updated_at: undefined
+      };
+      
+      await createTask(duplicatedTask);
+      showSuccess('تم تكرار المهمة بنجاح');
+      
+      await refreshTasks();
+      broadcastTasksChange();
+    } catch (error) {
+      showError('فشل تكرار المهمة');
+    }
+  };
+
   const handleAddColumn = () => {
     setSelectedColumn({
       name: '',
@@ -439,11 +460,40 @@ const Board = () => {
   };
 
   if (loading) {
-    return <Typography>جاري تحميل اللوحة...</Typography>;
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '60vh' 
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress size={60} />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            جاري تحميل اللوحة...
+          </Typography>
+        </Box>
+      </Box>
+    );
   }
 
   if (!board) {
-    return <Typography>لم يتم العثور على اللوحة</Typography>;
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '60vh' 
+        }}
+      >
+        <Typography variant="h6" color="error">
+          لم يتم العثور على اللوحة
+        </Typography>
+      </Box>
+    );
   }
 
   const tasksByColumnAndSwimlane = groupTasksByColumnAndSwimlane(board, tasks);
@@ -604,6 +654,8 @@ const Board = () => {
                                               task={task}
                                               index={index}
                                               onEdit={handleEditTask}
+                                              onDelete={handleDeleteTask}
+                                              onDuplicate={handleDuplicateTask}
                                             />
                                           </Box>
                                         )}
@@ -647,6 +699,8 @@ const Board = () => {
                                         task={task}
                                         index={index}
                                         onEdit={handleEditTask}
+                                        onDelete={handleDeleteTask}
+                                        onDuplicate={handleDuplicateTask}
                                       />
                                     </Box>
                                   )}
