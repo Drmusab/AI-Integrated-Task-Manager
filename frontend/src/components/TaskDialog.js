@@ -36,6 +36,7 @@ const TaskDialog = ({
   task,
   onClose,
   onSave,
+  onDelete,
   availableColumns = [],
   availableSwimlanes = [],
   availableTags = [],
@@ -159,12 +160,21 @@ const TaskDialog = ({
   };
 
   const handleSave = () => {
+    if (!formData.title.trim()) {
+      return;
+    }
     const dataToSave = {
       ...formData,
       due_date: formData.due_date ? formData.due_date.toISOString() : null,
       recurring_rule: formData.recurring_rule ? JSON.stringify(formData.recurring_rule) : null
     };
     onSave(dataToSave);
+  };
+
+  const handleDelete = () => {
+    if (task?.id && onDelete && window.confirm('Are you sure you want to delete this task?')) {
+      onDelete(task.id);
+    }
   };
 
   return (
@@ -456,8 +466,15 @@ const TaskDialog = ({
         </Grid>
       </DialogContent>
       <DialogActions>
+        <Box sx={{ flexGrow: 1 }}>
+          {task?.id && onDelete && (
+            <Button onClick={handleDelete} color="error">
+              Delete
+            </Button>
+          )}
+        </Box>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained">
+        <Button onClick={handleSave} variant="contained" disabled={!formData.title.trim()}>
           {task?.id ? 'Update' : 'Create'}
         </Button>
       </DialogActions>

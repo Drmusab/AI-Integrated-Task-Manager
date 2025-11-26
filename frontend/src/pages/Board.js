@@ -23,7 +23,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-import { getTasks, updateTask, createTask } from '../services/taskService';
+import { getTasks, updateTask, createTask, deleteTask } from '../services/taskService';
 import {
   getBoard,
   updateColumn,
@@ -273,6 +273,21 @@ const Board = () => {
       setSelectedTask(null);
     } catch (error) {
       showError('فشل حفظ المهمة');
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await deleteTask(taskId);
+      showSuccess('تم حذف المهمة بنجاح');
+      
+      await refreshTasks();
+      broadcastTasksChange();
+      
+      setTaskDialogOpen(false);
+      setSelectedTask(null);
+    } catch (error) {
+      showError('فشل حذف المهمة');
     }
   };
 
@@ -657,6 +672,7 @@ const Board = () => {
         open={taskDialogOpen}
         task={selectedTask}
         onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
         availableColumns={availableColumns}
         availableSwimlanes={availableSwimlanes}
         availableTags={availableTags}
