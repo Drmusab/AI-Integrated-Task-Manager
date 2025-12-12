@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Main Express application setup and configuration.
+ * Configures middleware, routes, error handling, and initializes the database.
+ * Entry point for the backend server.
+ * @module app
+ */
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -20,22 +27,27 @@ const { startScheduler } = require('./services/scheduler');
 const { requestTimer } = require('./middleware/performance');
 const logger = require('./utils/logger');
 
+/** Express application instance */
 const app = express();
+
+/** Server port from environment or default to 3001 */
 const PORT = process.env.PORT || 3001;
 
-// Security middleware
+// Security middleware - adds various HTTP headers for security
 app.use(helmet());
+
+// CORS middleware - allows cross-origin requests from frontend
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 
-// Performance monitoring
+// Performance monitoring middleware (disabled in test environment)
 if (process.env.NODE_ENV !== 'test') {
   app.use(requestTimer);
 }
 
-// Rate limiting
+// Rate limiting to prevent abuse - 100 requests per 15 minutes per IP
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -43,14 +55,14 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Body parsing middleware
+// Body parsing middleware - handles JSON and URL-encoded data
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Static files for attachments
+// Static files middleware - serves uploaded attachments
 app.use('/attachments', express.static(path.join(__dirname, '../attachments')));
 
-// API routes
+// API route registration
 app.use('/api/tasks', taskRoutes);
 app.use('/api/boards', boardRoutes);
 app.use('/api/users', userRoutes);
@@ -64,12 +76,21 @@ app.use('/api/settings', settingsRoutes);
 
 const { errorHandler } = require('./middleware/errorHandler');
 
-// Health check endpoint
+/**
+ * Health check endpoint for monitoring and load balancers.
+ * Returns 200 OK with current timestamp.
+ * @name GET /api/health
+ * @function
+ */
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// 404 handler
+/**
+ * 404 handler for undefined routes.
+ * Returns 404 with error message.
+ * @function
+ */
 app.use((req, res, next) => {
   res.status(404).json({ 
     error: 'Not Found',
@@ -78,9 +99,10 @@ app.use((req, res, next) => {
   });
 });
 
-// Error handling middleware (must be last)
+// Error handling middleware (must be registered last)
 app.use(errorHandler);
 
+// Initialize database and start server (skip in test environment)
 if (process.env.NODE_ENV !== 'test') {
   initDatabase().then(() => {
     app.listen(PORT, () => {
