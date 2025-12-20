@@ -159,25 +159,29 @@ router.get('/gtd/:status', async (req, res) => {
 router.get('/eisenhower/:quadrant', async (req, res) => {
   try {
     const { quadrant } = req.params;
-    const quadrantConditions = {
-      'do_first': 'urgency = 1 AND importance = 1',
-      'schedule': 'urgency = 0 AND importance = 1',
-      'delegate': 'urgency = 1 AND importance = 0',
-      'eliminate': 'urgency = 0 AND importance = 0'
+    
+    // Define quadrant conditions with proper parameter values
+    const quadrantParams = {
+      'do_first': { urgency: 1, importance: 1 },
+      'schedule': { urgency: 0, importance: 1 },
+      'delegate': { urgency: 1, importance: 0 },
+      'eliminate': { urgency: 0, importance: 0 }
     };
 
-    if (!quadrantConditions[quadrant]) {
+    if (!quadrantParams[quadrant]) {
       return res.status(400).json({ error: 'Invalid quadrant' });
     }
+
+    const { urgency, importance } = quadrantParams[quadrant];
 
     const tasks = await allAsync(
       `SELECT t.*, c.name as column_name, c.color as column_color, p.name as project_name
        FROM tasks t
        LEFT JOIN columns c ON t.column_id = c.id
        LEFT JOIN projects p ON t.project_id = p.id
-       WHERE ${quadrantConditions[quadrant]} AND t.gtd_status != 'done'
+       WHERE t.urgency = ? AND t.importance = ? AND t.gtd_status != 'done'
        ORDER BY t.due_date ASC, t.priority DESC`,
-      []
+      [urgency, importance]
     );
 
     // Get tags for each task
