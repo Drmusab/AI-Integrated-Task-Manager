@@ -16,6 +16,7 @@ import Calendar from './pages/Calendar';
 import Habits from './pages/Habits';
 import DailyPlanner from './pages/DailyPlanner';
 import Fitness from './pages/Fitness';
+import Islamic from './pages/Islamic';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 
@@ -47,6 +48,7 @@ function AppRoutes() {
           <Route path="/routines" element={isAuthenticated ? <Routines /> : <Navigate to="/login" />} />
           <Route path="/habits" element={isAuthenticated ? <Habits /> : <Navigate to="/login" />} />
           <Route path="/fitness" element={isAuthenticated ? <Fitness /> : <Navigate to="/login" />} />
+          <Route path="/islamic" element={isAuthenticated ? <Islamic /> : <Navigate to="/login" />} />
           <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" />} />
           <Route path="/analytics" element={isAuthenticated ? <Analytics /> : <Navigate to="/login" />} />
           <Route path="/calendar" element={isAuthenticated ? <Calendar /> : <Navigate to="/login" />} />

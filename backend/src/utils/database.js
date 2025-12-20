@@ -569,6 +569,171 @@ const initDatabase = () => {
           FOREIGN KEY (created_by) REFERENCES users (id)
         )`);
 
+        // Al-Falah Islamic Habit Tracker tables
+        // Daily prayer records - tracks the five daily prayers
+        await runAsync(`CREATE TABLE IF NOT EXISTS prayer_records (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date DATE NOT NULL,
+          prayer_type TEXT NOT NULL,
+          status TEXT DEFAULT 'pending',
+          on_time BOOLEAN DEFAULT 0,
+          with_jamaah BOOLEAN DEFAULT 0,
+          sunnah_before BOOLEAN DEFAULT 0,
+          sunnah_after BOOLEAN DEFAULT 0,
+          notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id),
+          UNIQUE(date, prayer_type, created_by)
+        )`);
+
+        // Qada (missed prayer) log - tracks missed prayers to make up
+        await runAsync(`CREATE TABLE IF NOT EXISTS qada_prayers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          prayer_type TEXT NOT NULL,
+          original_date DATE,
+          status TEXT DEFAULT 'pending',
+          completed_date DATE,
+          priority INTEGER DEFAULT 0,
+          notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id)
+        )`);
+
+        // Quran recitation logs
+        await runAsync(`CREATE TABLE IF NOT EXISTS quran_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date DATE NOT NULL,
+          recitation_type TEXT DEFAULT 'tilawah',
+          surah_start TEXT,
+          surah_end TEXT,
+          ayah_start INTEGER,
+          ayah_end INTEGER,
+          juz INTEGER,
+          pages REAL,
+          duration_minutes INTEGER,
+          notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id)
+        )`);
+
+        // Memorization (Hifz) tracker
+        await runAsync(`CREATE TABLE IF NOT EXISTS quran_memorization (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          surah TEXT NOT NULL,
+          ayah_start INTEGER NOT NULL,
+          ayah_end INTEGER NOT NULL,
+          status TEXT DEFAULT 'in_progress',
+          last_revision DATE,
+          next_revision DATE,
+          strength INTEGER DEFAULT 1,
+          notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id)
+        )`);
+
+        // Daily dhikr logs
+        await runAsync(`CREATE TABLE IF NOT EXISTS dhikr_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date DATE NOT NULL,
+          dhikr_type TEXT NOT NULL,
+          count INTEGER DEFAULT 0,
+          target INTEGER DEFAULT 0,
+          completed BOOLEAN DEFAULT 0,
+          notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id),
+          UNIQUE(date, dhikr_type, created_by)
+        )`);
+
+        // Dua journal
+        await runAsync(`CREATE TABLE IF NOT EXISTS dua_journal (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          dua_text TEXT,
+          category TEXT DEFAULT 'personal',
+          is_recurring BOOLEAN DEFAULT 0,
+          status TEXT DEFAULT 'active',
+          date_logged DATE NOT NULL,
+          date_answered DATE,
+          notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id)
+        )`);
+
+        // Fasting records
+        await runAsync(`CREATE TABLE IF NOT EXISTS fasting_records (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date DATE NOT NULL,
+          fast_type TEXT DEFAULT 'voluntary',
+          status TEXT DEFAULT 'planned',
+          notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id),
+          UNIQUE(date, created_by)
+        )`);
+
+        // Friday (Jumu'ah) checklist
+        await runAsync(`CREATE TABLE IF NOT EXISTS jumuah_checklist (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date DATE NOT NULL,
+          ghusl BOOLEAN DEFAULT 0,
+          early_arrival BOOLEAN DEFAULT 0,
+          sunnah_prayers BOOLEAN DEFAULT 0,
+          surah_kahf BOOLEAN DEFAULT 0,
+          extra_dua BOOLEAN DEFAULT 0,
+          special_adhkar BOOLEAN DEFAULT 0,
+          notes TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id),
+          UNIQUE(date, created_by)
+        )`);
+
+        // Islamic settings (prayer calculation method, location, etc.)
+        await runAsync(`CREATE TABLE IF NOT EXISTS islamic_settings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER UNIQUE,
+          calculation_method TEXT DEFAULT 'MWL',
+          latitude REAL,
+          longitude REAL,
+          timezone TEXT,
+          notifications_enabled BOOLEAN DEFAULT 1,
+          reminder_minutes INTEGER DEFAULT 15,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        )`);
+
+        // Daily reflection for spiritual journaling
+        await runAsync(`CREATE TABLE IF NOT EXISTS spiritual_reflections (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date DATE NOT NULL,
+          prayer_focus TEXT,
+          gratitude TEXT,
+          improvements TEXT,
+          key_insights TEXT,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id),
+          UNIQUE(date, created_by)
+        )`);
+
         // Create indexes for better performance
         await runAsync('CREATE INDEX IF NOT EXISTS idx_tasks_column_id ON tasks(column_id)');
         await runAsync('CREATE INDEX IF NOT EXISTS idx_tasks_swimlane_id ON tasks(swimlane_id)');
@@ -589,6 +754,14 @@ const initDatabase = () => {
         await runAsync('CREATE INDEX IF NOT EXISTS idx_personal_records_exercise ON personal_records(exercise_id)');
         await runAsync('CREATE INDEX IF NOT EXISTS idx_body_measurements_date ON body_measurements(date)');
         await runAsync('CREATE INDEX IF NOT EXISTS idx_fitness_goals_status ON fitness_goals(status)');
+        // Islamic tracker indexes
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_prayer_records_date ON prayer_records(date)');
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_prayer_records_type ON prayer_records(prayer_type)');
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_quran_logs_date ON quran_logs(date)');
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_dhikr_logs_date ON dhikr_logs(date)');
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_fasting_records_date ON fasting_records(date)');
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_jumuah_checklist_date ON jumuah_checklist(date)');
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_spiritual_reflections_date ON spiritual_reflections(date)');
 
         // Ensure a default demo user exists for first-run experience
         const userCount = await getAsync('SELECT COUNT(*) as count FROM users');
@@ -788,6 +961,17 @@ const TABLES_IN_DELETE_ORDER = [
   'body_measurements',
   'fitness_goals',
   'fitness_profile',
+  // Islamic tracker tables
+  'prayer_records',
+  'qada_prayers',
+  'quran_logs',
+  'quran_memorization',
+  'dhikr_logs',
+  'dua_journal',
+  'fasting_records',
+  'jumuah_checklist',
+  'islamic_settings',
+  'spiritual_reflections',
   'users'
 ];
 
