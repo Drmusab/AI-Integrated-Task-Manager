@@ -444,7 +444,7 @@ router.get('/:id/stats', [param('id').isInt()], async (req, res) => {
 });
 
 /**
- * GET /api/habits/weekly-summary
+ * GET /api/habits/summary/weekly
  * Get a weekly summary of all habits for the current week
  */
 router.get('/summary/weekly', async (req, res) => {
@@ -570,11 +570,11 @@ router.get('/summary/weekly', async (req, res) => {
 });
 
 /**
- * GET /api/habits/monthly-summary
+ * GET /api/habits/summary/monthly
  * Get a monthly summary of all habits
  */
 router.get('/summary/monthly', [
-  query('month').optional().isString(),
+  query('month').optional().isInt({ min: 1, max: 12 }),
   query('year').optional().isInt(),
 ], async (req, res) => {
   try {
