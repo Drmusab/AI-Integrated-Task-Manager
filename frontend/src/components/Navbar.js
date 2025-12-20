@@ -19,7 +19,8 @@ import {
   Settings,
   Analytics,
   ExitToApp,
-  Repeat
+  Repeat,
+  CheckBox
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -90,6 +91,14 @@ const Navbar = () => {
             </Button>
             <Button
               color="inherit"
+              startIcon={<CheckBox />}
+              onClick={() => navigate('/habits')}
+              variant={location.pathname === '/habits' ? 'outlined' : 'text'}
+            >
+              العادات
+            </Button>
+            <Button
+              color="inherit"
               startIcon={<Analytics />}
               onClick={() => navigate('/analytics')}
               variant={location.pathname === '/analytics' ? 'outlined' : 'text'}
@@ -147,6 +156,9 @@ const Navbar = () => {
                 </MenuItem>
                 <MenuItem onClick={() => handleNavigation('/routines')}>
                   <Repeat sx={{ mr: 1 }} /> الجداول الدورية
+                </MenuItem>
+                <MenuItem onClick={() => handleNavigation('/habits')}>
+                  <CheckBox sx={{ mr: 1 }} /> العادات
                 </MenuItem>
                 <MenuItem onClick={() => handleNavigation('/analytics')}>
                   <Analytics sx={{ mr: 1 }} /> التحليلات

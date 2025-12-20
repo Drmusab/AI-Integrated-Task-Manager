@@ -296,12 +296,49 @@ const initDatabase = () => {
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
+        // Habits table for habit tracking
+        await runAsync(`CREATE TABLE IF NOT EXISTS habits (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          description TEXT,
+          category TEXT DEFAULT 'general',
+          goal_type TEXT DEFAULT 'binary',
+          goal_value INTEGER DEFAULT 1,
+          goal_unit TEXT,
+          frequency TEXT DEFAULT 'daily',
+          days_of_week TEXT,
+          color TEXT DEFAULT '#3498db',
+          icon TEXT,
+          position INTEGER DEFAULT 0,
+          archived BOOLEAN DEFAULT 0,
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (created_by) REFERENCES users (id)
+        )`);
+
+        // Habit logs table for tracking daily habit completions
+        await runAsync(`CREATE TABLE IF NOT EXISTS habit_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          habit_id INTEGER NOT NULL,
+          log_date DATE NOT NULL,
+          status TEXT DEFAULT 'pending',
+          value REAL DEFAULT 0,
+          notes TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE,
+          UNIQUE(habit_id, log_date)
+        )`);
+
         // Create indexes for better performance
         await runAsync('CREATE INDEX IF NOT EXISTS idx_tasks_column_id ON tasks(column_id)');
         await runAsync('CREATE INDEX IF NOT EXISTS idx_tasks_swimlane_id ON tasks(swimlane_id)');
         await runAsync('CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)');
         await runAsync('CREATE INDEX IF NOT EXISTS idx_task_history_task_id ON task_history(task_id)');
         await runAsync('CREATE INDEX IF NOT EXISTS idx_automation_logs_rule_id ON automation_logs(rule_id)');
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_habit_logs_habit_id ON habit_logs(habit_id)');
+        await runAsync('CREATE INDEX IF NOT EXISTS idx_habit_logs_log_date ON habit_logs(log_date)');
 
         // Ensure a default demo user exists for first-run experience
         const userCount = await getAsync('SELECT COUNT(*) as count FROM users');
@@ -392,6 +429,8 @@ const TABLES_IN_DELETE_ORDER = [
   'automation_rules',
   'integrations',
   'tags',
+  'habit_logs',
+  'habits',
   'users'
 ];
 
