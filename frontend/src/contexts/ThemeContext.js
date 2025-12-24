@@ -61,7 +61,7 @@ const getPalette = (mode) => ({
 /**
  * Theme Provider Component
  */
-export const ThemeProvider = ({ children }) => {
+export const ThemeProvider = ({ children, direction = 'rtl' }) => {
   const [mode, setMode] = useState(() => {
     // Load saved preference or default to light
     const saved = localStorage.getItem('theme-mode');
@@ -76,7 +76,7 @@ export const ThemeProvider = ({ children }) => {
   const theme = useMemo(
     () =>
       createTheme({
-        direction: 'rtl',
+        direction, // Configurable direction, defaults to RTL
         palette: getPalette(mode),
         typography: {
           fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif',
@@ -245,7 +245,7 @@ export const ThemeProvider = ({ children }) => {
           },
         },
       }),
-    [mode]
+    [mode, direction]
   );
 
   const toggleTheme = () => {

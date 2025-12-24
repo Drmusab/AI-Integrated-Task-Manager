@@ -28,6 +28,7 @@ function sanitizeHTML(input) {
 
 /**
  * Sanitize string for safe SQL-like queries (additional layer beyond parameterized queries)
+ * Note: This is a supplementary check. Always use parameterized queries as the primary defense.
  * @param {string} input - User input
  * @returns {string} Sanitized string
  */
@@ -36,9 +37,9 @@ function sanitizeSQL(input) {
     return '';
   }
 
-  // Remove SQL keywords and special characters that could be used in injection
-  const dangerous = /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|WHERE|OR|AND|--|;|'|")\b)/gi;
-  return input.replace(dangerous, '').trim();
+  // Remove dangerous SQL characters that are unlikely to be legitimate
+  // This is a supplementary layer - parameterized queries are the primary defense
+  return input.replace(/[;'"\\]/g, '').trim();
 }
 
 /**

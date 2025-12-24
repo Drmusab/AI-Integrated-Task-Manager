@@ -254,15 +254,18 @@ async function bulkDuplicateTasks(taskIds, userId = null) {
   const errors = [];
 
   try {
-    for (const taskId of taskIds) {
-      // Get original task
-      const task = await allAsync('SELECT * FROM tasks WHERE id = ?', [taskId]);
-      if (task.length === 0) {
-        errors.push(`Task ${taskId} not found`);
-        continue;
-      }
+    // Fetch all tasks at once to avoid N+1 query pattern
+    const placeholders = taskIds.map(() => '?').join(',');
+    const tasks = await allAsync(
+      `SELECT * FROM tasks WHERE id IN (${placeholders})`,
+      taskIds
+    );
 
-      const original = task[0];
+    if (tasks.length === 0) {
+      return { created: [], errors: ['No tasks found'] };
+    }
+
+    for (const original of tasks) {
 
       // Create duplicate
       const result = await runAsync(
@@ -297,10 +300,10 @@ async function bulkDuplicateTasks(taskIds, userId = null) {
 
       newTaskIds.push(result.lastID);
 
-      // Copy tags
+      // Copy tags for this task
       const tags = await allAsync(
         'SELECT tag_id FROM task_tags WHERE task_id = ?',
-        [taskId]
+        [original.id]
       );
       for (const tag of tags) {
         await runAsync(
@@ -309,10 +312,10 @@ async function bulkDuplicateTasks(taskIds, userId = null) {
         );
       }
 
-      // Copy subtasks
+      // Copy subtasks for this task
       const subtasks = await allAsync(
         'SELECT * FROM subtasks WHERE task_id = ? ORDER BY position',
-        [taskId]
+        [original.id]
       );
       for (const subtask of subtasks) {
         await runAsync(

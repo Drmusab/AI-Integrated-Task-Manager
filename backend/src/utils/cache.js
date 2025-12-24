@@ -8,18 +8,20 @@
  * Simple in-memory cache with TTL support
  */
 class Cache {
-  constructor() {
+  constructor(defaultTTL = 300000) { // Default: 5 minutes
     this.store = new Map();
     this.timers = new Map();
+    this.defaultTTL = defaultTTL;
   }
 
   /**
    * Store a value in cache with optional TTL
    * @param {string} key - Cache key
    * @param {*} value - Value to cache
-   * @param {number} ttl - Time to live in milliseconds (default: 5 minutes)
+   * @param {number} ttl - Time to live in milliseconds (uses default if not specified)
    */
-  set(key, value, ttl = 300000) {
+  set(key, value, ttl = null) {
+    const timeToLive = ttl !== null ? ttl : this.defaultTTL;
     // Clear existing timer if any
     if (this.timers.has(key)) {
       clearTimeout(this.timers.get(key));
@@ -28,13 +30,13 @@ class Cache {
     // Store the value
     this.store.set(key, {
       value,
-      expiresAt: Date.now() + ttl
+      expiresAt: Date.now() + timeToLive
     });
 
     // Set expiration timer
     const timer = setTimeout(() => {
       this.delete(key);
-    }, ttl);
+    }, timeToLive);
 
     this.timers.set(key, timer);
   }
@@ -110,10 +112,10 @@ class Cache {
    * Get or set cache value with a factory function
    * @param {string} key - Cache key
    * @param {Function} factory - Async function to generate value if not cached
-   * @param {number} ttl - Time to live in milliseconds
+   * @param {number} ttl - Time to live in milliseconds (uses default if not specified)
    * @returns {Promise<*>} Cached or generated value
    */
-  async getOrSet(key, factory, ttl = 300000) {
+  async getOrSet(key, factory, ttl = null) {
     const cached = this.get(key);
     
     if (cached !== null) {
@@ -126,7 +128,8 @@ class Cache {
   }
 }
 
-// Export singleton instance
-const cache = new Cache();
+// Export singleton instance with configurable default TTL
+const defaultTTL = process.env.CACHE_TTL ? parseInt(process.env.CACHE_TTL) : 300000;
+const cache = new Cache(defaultTTL);
 
 module.exports = cache;
