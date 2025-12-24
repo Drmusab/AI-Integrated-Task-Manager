@@ -7,7 +7,7 @@
 const express = require('express');
 const router = express.Router();
 const { allAsync, runAsync, getAsync } = require('../utils/database');
-const { authenticateToken } = require('../middleware/apiKeyAuth');
+const { authenticateToken } = require('../middleware/jwtAuth');
 const { autoScheduleTask, addMinutes, getMinutesDifference } = require('../services/chronos');
 
 // ==================== TIME BLOCKS ENDPOINTS ====================

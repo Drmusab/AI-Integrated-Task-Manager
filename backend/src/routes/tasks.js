@@ -1,14 +1,31 @@
+/**
+ * @fileoverview Task management API routes.
+ * Provides CRUD operations for tasks with validation, history tracking,
+ * automation triggers, and real-time event emission.
+ * @module routes/tasks
+ */
+
 const express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
+const { body, query, param, validationResult } = require('express-validator');
 const { db } = require('../utils/database');
 const { recordTaskHistory } = require('../utils/history');
 const { triggerAutomation } = require('../services/automation');
 const apiKeyAuth = require('../middleware/apiKeyAuth');
 const { emitEvent } = require('../services/eventBus');
 
+/**
+ * Validation rules for creating a new task.
+ * @constant {Array}
+ */
 const createTaskValidations = [
-  body('title').notEmpty().withMessage('Title is required'),
+  body('title')
+    .trim()
+    .notEmpty().withMessage('Title is required')
+    .isLength({ max: 500 }).withMessage('Title must be less than 500 characters'),
+  body('description')
+    .optional()
+    .isLength({ max: 10000 }).withMessage('Description must be less than 10000 characters'),
   body('column_id').custom((value, { req }) => {
     const incoming = value ?? req.body.columnId;
 
@@ -18,30 +35,90 @@ const createTaskValidations = [
 
     const parsed = Number(incoming);
 
-    if (!Number.isInteger(parsed)) {
-      throw new Error('Column ID must be an integer');
+    if (!Number.isInteger(parsed) || parsed < 1) {
+      throw new Error('Column ID must be a positive integer');
     }
 
     req.body.column_id = parsed;
     return true;
   }),
+  body('priority')
+    .optional()
+    .isIn(['low', 'medium', 'high', 'critical']).withMessage('Priority must be low, medium, high, or critical'),
+  body('due_date')
+    .optional({ nullable: true })
+    .isISO8601().withMessage('Due date must be a valid ISO 8601 date'),
 ];
 
+/**
+ * Validation rules for updating a task.
+ * @constant {Array}
+ */
 const updateTaskValidations = [
-  body('title').optional().notEmpty().withMessage('Title cannot be empty'),
+  body('title')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Title cannot be empty')
+    .isLength({ max: 500 }).withMessage('Title must be less than 500 characters'),
+  body('description')
+    .optional()
+    .isLength({ max: 10000 }).withMessage('Description must be less than 10000 characters'),
+  body('priority')
+    .optional()
+    .isIn(['low', 'medium', 'high', 'critical']).withMessage('Priority must be low, medium, high, or critical'),
+  body('due_date')
+    .optional({ nullable: true })
+    .isISO8601().withMessage('Due date must be a valid ISO 8601 date'),
 ];
 
+/**
+ * Validation rules for webhook task updates.
+ * @constant {Array}
+ */
 const webhookUpdateValidations = [
-  body('id').isInt().withMessage('Task ID is required'),
+  body('id').isInt({ min: 1 }).withMessage('Task ID must be a positive integer'),
   ...updateTaskValidations,
 ];
 
+/**
+ * Validation rules for webhook task deletion.
+ * @constant {Array}
+ */
 const webhookDeleteValidations = [
-  body('id').isInt().withMessage('Task ID is required'),
+  body('id').isInt({ min: 1 }).withMessage('Task ID must be a positive integer'),
 ];
 
-// Get all tasks
-router.get('/', (req, res) => {
+/**
+ * Validation rules for query parameters when listing tasks.
+ * @constant {Array}
+ */
+const listTasksValidations = [
+  query('boardId').optional().isInt({ min: 1 }).withMessage('Board ID must be a positive integer'),
+  query('columnId').optional().isInt({ min: 1 }).withMessage('Column ID must be a positive integer'),
+  query('swimlaneId').optional().isInt({ min: 1 }).withMessage('Swimlane ID must be a positive integer'),
+  query('assignedTo').optional().isInt({ min: 1 }).withMessage('Assigned To must be a positive integer'),
+  query('dueBefore').optional().isISO8601().withMessage('dueBefore must be a valid ISO 8601 date'),
+  query('dueAfter').optional().isISO8601().withMessage('dueAfter must be a valid ISO 8601 date'),
+];
+
+/**
+ * GET /api/tasks
+ * Retrieves all tasks with optional filtering by board, column, swimlane, assignee, and due date.
+ * @route GET /api/tasks
+ * @query {number} [boardId] - Filter by board ID
+ * @query {number} [columnId] - Filter by column ID
+ * @query {number} [swimlaneId] - Filter by swimlane ID
+ * @query {number} [assignedTo] - Filter by assigned user ID
+ * @query {string} [dueBefore] - Filter tasks due before this ISO 8601 date
+ * @query {string} [dueAfter] - Filter tasks due after this ISO 8601 date
+ * @returns {Array<Object>} Array of task objects with tags
+ */
+router.get('/', listTasksValidations, (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const { boardId, columnId, swimlaneId, assignedTo, tags, dueBefore, dueAfter } = req.query;
   
   let query = `
@@ -59,22 +136,22 @@ router.get('/', (req, res) => {
   
   if (boardId) {
     query += ' AND c.board_id = ?';
-    params.push(boardId);
+    params.push(parseInt(boardId, 10));
   }
   
   if (columnId) {
     query += ' AND t.column_id = ?';
-    params.push(columnId);
+    params.push(parseInt(columnId, 10));
   }
   
   if (swimlaneId) {
     query += ' AND t.swimlane_id = ?';
-    params.push(swimlaneId);
+    params.push(parseInt(swimlaneId, 10));
   }
   
   if (assignedTo) {
     query += ' AND t.assigned_to = ?';
-    params.push(assignedTo);
+    params.push(parseInt(assignedTo, 10));
   }
   
   if (dueBefore) {
@@ -118,8 +195,16 @@ router.get('/', (req, res) => {
 });
 
 // Get a specific task
-router.get('/:id', (req, res) => {
+router.get('/:id', [
+  param('id').isInt({ min: 1 }).withMessage('Task ID must be a positive integer'),
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const { id } = req.params;
+  const taskId = parseInt(id, 10);
   
   db.get(
     `SELECT t.*, c.name as column_name, s.name as swimlane_name, 
@@ -130,7 +215,7 @@ router.get('/:id', (req, res) => {
      LEFT JOIN users u1 ON t.created_by = u1.id
      LEFT JOIN users u2 ON t.assigned_to = u2.id
      WHERE t.id = ?`,
-    [id],
+    [taskId],
     (err, row) => {
       if (err) {
         return res.status(500).json({ error: err.message });

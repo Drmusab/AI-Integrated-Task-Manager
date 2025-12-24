@@ -1,8 +1,33 @@
+/**
+ * @fileoverview Automation service for triggering rule-based actions.
+ * Handles event-driven automation rules with webhook, notification, and task actions.
+ * @module services/automation
+ */
+
 const { allAsync, getAsync, runAsync } = require('../utils/database');
 const { triggerWebhook } = require('./webhook');
 const { sendNotification } = require('./notifications');
+const logger = require('../utils/logger');
 
-// Trigger automation based on event type
+/**
+ * Trigger automation rules based on an event type and associated data.
+ * Fetches all enabled rules matching the event type, checks conditions,
+ * and executes corresponding actions.
+ * 
+ * @async
+ * @function triggerAutomation
+ * @param {string} eventType - The type of event (e.g., 'task_created', 'task_moved', 'task_deleted')
+ * @param {Object} eventData - Data associated with the event
+ * @param {number} [eventData.taskId] - ID of the affected task
+ * @param {number} [eventData.columnId] - Current column ID
+ * @param {number} [eventData.oldColumnId] - Previous column ID (for move events)
+ * @param {number} [eventData.newColumnId] - New column ID (for move events)
+ * @param {string} [eventData.priority] - Task priority
+ * @param {number} [eventData.assignedTo] - User ID the task is assigned to
+ * @returns {Promise<void>}
+ * @example
+ * await triggerAutomation('task_created', { taskId: 123, columnId: 1, priority: 'high' });
+ */
 const triggerAutomation = async (eventType, eventData) => {
   try {
     const rules = await allAsync(
@@ -29,7 +54,7 @@ const triggerAutomation = async (eventType, eventData) => {
           [rule.id, status, message]
         );
       } catch (error) {
-        console.error(`Error executing automation rule ${rule.id}:`, error);
+        logger.error(`Error executing automation rule ${rule.id}`, { error: error.message });
 
         try {
           await runAsync(
@@ -37,16 +62,32 @@ const triggerAutomation = async (eventType, eventData) => {
             [rule.id, 'failed', error.message]
           );
         } catch (logError) {
-          console.error('Failed to log automation execution:', logError);
+          logger.error('Failed to log automation execution', { error: logError.message });
         }
       }
     }
   } catch (error) {
-    console.error('Error in triggerAutomation:', error);
+    logger.error('Error in triggerAutomation', { error: error.message, eventType });
   }
 };
 
-// Check if trigger conditions are met
+/**
+ * Check if trigger conditions are met for an automation rule.
+ * Validates column, priority, assignment, and movement conditions.
+ * 
+ * @function checkTriggerConditions
+ * @param {Object} triggerConfig - Configuration object from the automation rule
+ * @param {number} [triggerConfig.columnId] - Required column ID
+ * @param {string} [triggerConfig.priority] - Required priority level
+ * @param {number} [triggerConfig.assignedTo] - Required assignee
+ * @param {number} [triggerConfig.fromColumnId] - Source column for move events
+ * @param {number} [triggerConfig.toColumnId] - Destination column for move events
+ * @param {Object} eventData - Data from the triggered event
+ * @returns {boolean} True if all conditions are met, false otherwise
+ * @example
+ * const match = checkTriggerConditions({ priority: 'high' }, { priority: 'high' });
+ * // Returns: true
+ */
 const checkTriggerConditions = (triggerConfig, eventData) => {
   // For task_created, task_updated, task_deleted events
   if (triggerConfig.columnId && eventData.columnId !== triggerConfig.columnId) {
@@ -78,7 +119,20 @@ const checkTriggerConditions = (triggerConfig, eventData) => {
   return true;
 };
 
-// Execute an automation action
+/**
+ * Execute an automation action based on the action type.
+ * Supports webhook, notification, move_task, update_task, and create_task actions.
+ * 
+ * @async
+ * @function executeAutomationAction
+ * @param {string} actionType - Type of action ('webhook', 'notification', 'move_task', 'update_task', 'create_task')
+ * @param {Object} actionConfig - Configuration for the action
+ * @param {Object} eventData - Data from the triggering event
+ * @returns {Promise<Object>} Result object with success status and message or error
+ * @throws {Error} If action type is unknown
+ * @example
+ * const result = await executeAutomationAction('notification', { title: 'Alert', message: 'Task created' }, {});
+ */
 const executeAutomationAction = async (actionType, actionConfig, eventData) => {
   switch (actionType) {
     case 'webhook':
@@ -184,6 +238,16 @@ const executeAutomationAction = async (actionType, actionConfig, eventData) => {
   }
 };
 
+/**
+ * Safely parse a JSON configuration string.
+ * 
+ * @function parseConfig
+ * @param {string} configString - JSON string to parse
+ * @param {string} label - Label for error messages ('trigger' or 'action')
+ * @returns {Object} Parsed configuration object
+ * @throws {Error} If JSON parsing fails
+ * @private
+ */
 const parseConfig = (configString, label) => {
   try {
     return JSON.parse(configString);

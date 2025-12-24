@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const { getAsync, runAsync } = require('../utils/database');
+const { authenticateToken } = require('../middleware/jwtAuth');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -16,23 +17,6 @@ const sanitizeUser = (user) => {
 
   const { password_hash, ...rest } = user;
   return rest;
-};
-
-const authenticate = (req, res, next) => {
-  const authHeader = req.headers.authorization || '';
-  const [scheme, token] = authHeader.split(' ');
-
-  if (!token || scheme?.toLowerCase() !== 'bearer') {
-    return res.status(401).json({ error: 'Authorization token is required' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
 };
 
 router.post('/login', [
@@ -109,7 +93,7 @@ router.post('/register', [
   }
 });
 
-router.get('/me', authenticate, async (req, res) => {
+router.get('/me', authenticateToken, async (req, res) => {
   try {
     const user = await getAsync(
       'SELECT id, username, email, role, created_at, updated_at FROM users WHERE id = ?',
