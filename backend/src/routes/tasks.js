@@ -587,6 +587,89 @@ router.delete('/:id/tags', (req, res) => {
   );
 });
 
+// Bulk Operations
+const bulkOps = require('../utils/bulkOperations');
+
+/**
+ * Bulk update tasks
+ */
+router.post('/bulk/update', async (req, res) => {
+  const { taskIds, updates, userId } = req.body;
+  
+  if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
+    return res.status(400).json({ error: 'taskIds array is required' });
+  }
+  
+  if (!updates || typeof updates !== 'object') {
+    return res.status(400).json({ error: 'updates object is required' });
+  }
+
+  try {
+    const result = await bulkOps.bulkUpdateTasks(taskIds, updates, userId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Bulk delete tasks
+ */
+router.post('/bulk/delete', async (req, res) => {
+  const { taskIds, userId } = req.body;
+  
+  if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
+    return res.status(400).json({ error: 'taskIds array is required' });
+  }
+
+  try {
+    const result = await bulkOps.bulkDeleteTasks(taskIds, userId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Bulk move tasks to column
+ */
+router.post('/bulk/move', async (req, res) => {
+  const { taskIds, columnId, userId } = req.body;
+  
+  if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
+    return res.status(400).json({ error: 'taskIds array is required' });
+  }
+  
+  if (!columnId) {
+    return res.status(400).json({ error: 'columnId is required' });
+  }
+
+  try {
+    const result = await bulkOps.bulkMoveTasks(taskIds, columnId, userId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Bulk duplicate tasks
+ */
+router.post('/bulk/duplicate', async (req, res) => {
+  const { taskIds, userId } = req.body;
+  
+  if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
+    return res.status(400).json({ error: 'taskIds array is required' });
+  }
+
+  try {
+    const result = await bulkOps.bulkDuplicateTasks(taskIds, userId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
 
 function normalizeOptionalInt(value, { treatUndefinedAsNull = false } = {}) {
