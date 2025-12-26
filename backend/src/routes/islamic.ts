@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 /**
  * @fileoverview Routes for Al-Falah Islamic Habit Tracker functionality.
  * Provides CRUD operations for prayer tracking, Quran recitation, dhikr, fasting, and more.
@@ -70,7 +69,7 @@ router.get('/prayers', [
       createdAt: p.created_at,
       updatedAt: p.updated_at,
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch prayer records:', error);
     res.status(500).json({ error: 'Unable to fetch prayer records' });
   }
@@ -80,7 +79,7 @@ router.get('/prayers', [
  * GET /api/islamic/prayers/today
  * Get today's prayer records
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/prayers/today', async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     
@@ -124,7 +123,7 @@ router.get(async (req: Request, res: Response) => {
     });
 
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch today\'s prayers:', error);
     res.status(500).json({ error: 'Unable to fetch today\'s prayers' });
   }
@@ -185,7 +184,7 @@ router.post('/prayers/log', [
     }
 
     res.json({ message: 'Prayer logged successfully', date, prayerType, status });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to log prayer:', error);
     res.status(500).json({ error: 'Unable to log prayer', details: error.message });
   }
@@ -230,7 +229,7 @@ router.get('/prayers/summary', [
     });
 
     res.json(summary);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch prayer summary:', error);
     res.status(500).json({ error: 'Unable to fetch prayer summary' });
   }
@@ -240,7 +239,7 @@ router.get('/prayers/summary', [
  * GET /api/islamic/qada
  * Get qada (missed) prayers list
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/qada', async (req, res) => {
   try {
     const qadaPrayers = await allAsync(
       `SELECT * FROM qada_prayers 
@@ -258,7 +257,7 @@ router.get(async (req: Request, res: Response) => {
       notes: q.notes,
       createdAt: q.created_at,
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch qada prayers:', error);
     res.status(500).json({ error: 'Unable to fetch qada prayers' });
   }
@@ -282,7 +281,7 @@ router.post('/qada/:id/complete', [param('id').isInt()], async (req, res) => {
     );
 
     res.json({ message: 'Qada prayer marked as completed' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to complete qada prayer:', error);
     res.status(500).json({ error: 'Unable to complete qada prayer' });
   }
@@ -322,7 +321,7 @@ router.get('/quran', [
       notes: l.notes,
       createdAt: l.created_at,
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch Quran logs:', error);
     res.status(500).json({ error: 'Unable to fetch Quran logs' });
   }
@@ -374,7 +373,7 @@ router.post('/quran', [
       id: result.lastID, 
       message: 'Quran recitation logged successfully' 
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to log Quran recitation:', error);
     res.status(500).json({ error: 'Unable to log Quran recitation' });
   }
@@ -384,7 +383,7 @@ router.post('/quran', [
  * GET /api/islamic/quran/summary
  * Get Quran recitation summary
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/quran/summary', async (req, res) => {
   try {
     const today = new Date();
     const thisMonth = today.toISOString().slice(0, 7);
@@ -418,7 +417,7 @@ router.get(async (req: Request, res: Response) => {
         minutes: t.minutes,
       })),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch Quran summary:', error);
     res.status(500).json({ error: 'Unable to fetch Quran summary' });
   }
@@ -448,7 +447,7 @@ router.get('/dhikr', [
       completed: Boolean(l.completed),
       notes: l.notes,
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch dhikr logs:', error);
     res.status(500).json({ error: 'Unable to fetch dhikr logs' });
   }
@@ -489,7 +488,7 @@ router.post('/dhikr/log', [
     );
 
     res.json({ message: 'Dhikr logged successfully', date, dhikrType, count });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to log dhikr:', error);
     res.status(500).json({ error: 'Unable to log dhikr' });
   }
@@ -523,7 +522,7 @@ router.get('/fasting', [
       notes: r.notes,
       createdAt: r.created_at,
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch fasting records:', error);
     res.status(500).json({ error: 'Unable to fetch fasting records' });
   }
@@ -559,7 +558,7 @@ router.post('/fasting', [
     );
 
     res.json({ message: 'Fasting record saved', date, fastType, status });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to save fasting record:', error);
     res.status(500).json({ error: 'Unable to save fasting record' });
   }
@@ -604,7 +603,7 @@ router.get('/jumuah', [
         notes: '',
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch Jumuah checklist:', error);
     res.status(500).json({ error: 'Unable to fetch Jumuah checklist' });
   }
@@ -649,7 +648,7 @@ router.post('/jumuah', [
     );
 
     res.json({ message: 'Jumuah checklist saved', date });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to save Jumuah checklist:', error);
     res.status(500).json({ error: 'Unable to save Jumuah checklist' });
   }
@@ -692,7 +691,7 @@ router.get('/dua', [
       notes: d.notes,
       createdAt: d.created_at,
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch dua journal:', error);
     res.status(500).json({ error: 'Unable to fetch dua journal' });
   }
@@ -732,7 +731,7 @@ router.post('/dua', [
     );
 
     res.status(201).json({ id: result.lastID, message: 'Dua added to journal' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to add dua:', error);
     res.status(500).json({ error: 'Unable to add dua' });
   }
@@ -756,7 +755,7 @@ router.patch('/dua/:id/answered', [param('id').isInt()], async (req, res) => {
     );
 
     res.json({ message: 'Dua marked as answered' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update dua:', error);
     res.status(500).json({ error: 'Unable to update dua' });
   }
@@ -795,7 +794,7 @@ router.get('/reflection', [
         keyInsights: '',
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch reflection:', error);
     res.status(500).json({ error: 'Unable to fetch reflection' });
   }
@@ -834,7 +833,7 @@ router.post('/reflection', [
     );
 
     res.json({ message: 'Reflection saved', date });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to save reflection:', error);
     res.status(500).json({ error: 'Unable to save reflection' });
   }
@@ -844,7 +843,7 @@ router.post('/reflection', [
  * GET /api/islamic/dashboard
  * Get comprehensive Islamic dashboard data for today
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/dashboard', async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     const dayOfWeek = new Date().getDay();
@@ -934,7 +933,7 @@ router.get(async (req: Request, res: Response) => {
         specialAdhkar: Boolean(jumuahChecklist.special_adhkar),
       } : null,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch Islamic dashboard:', error);
     res.status(500).json({ error: 'Unable to fetch dashboard data' });
   }
@@ -944,7 +943,7 @@ router.get(async (req: Request, res: Response) => {
  * GET /api/islamic/settings
  * Get Islamic settings for the user
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/settings', async (req, res) => {
   try {
     // For now, return default settings since we don't have user auth in this context
     const settings = await getAsync(
@@ -970,7 +969,7 @@ router.get(async (req: Request, res: Response) => {
         reminderMinutes: 15,
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch Islamic settings:', error);
     res.status(500).json({ error: 'Unable to fetch settings' });
   }
@@ -1015,10 +1014,10 @@ router.post('/settings', [
     );
 
     res.json({ message: 'Islamic settings saved' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to save Islamic settings:', error);
     res.status(500).json({ error: 'Unable to save settings' });
   }
 });
 
-export default router;
+export = router;

@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 /**
  * @fileoverview Routes for fitness/gym companion functionality.
  * Provides CRUD operations for exercises, workouts, sessions, and progress tracking.
@@ -18,7 +17,7 @@ const router = express.Router();
  * GET /api/fitness/muscle-groups
  * Get all muscle groups (organized hierarchically)
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/muscle-groups', async (req, res) => {
   try {
     const groups = await allAsync(
       'SELECT * FROM muscle_groups ORDER BY parent_id NULLS FIRST, name ASC'
@@ -40,7 +39,7 @@ router.get(async (req: Request, res: Response) => {
     }));
 
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch muscle groups:', error);
     res.status(500).json({ error: 'Unable to fetch muscle groups' });
   }
@@ -52,7 +51,7 @@ router.get(async (req: Request, res: Response) => {
  * GET /api/fitness/exercises
  * Get all exercises with optional filtering
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/exercises', async (req, res) => {
   try {
     const { muscleGroupId, search, difficulty } = req.query;
     
@@ -94,7 +93,7 @@ router.get(async (req: Request, res: Response) => {
       isCustom: Boolean(ex.is_custom),
       createdAt: ex.created_at
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch exercises:', error);
     res.status(500).json({ error: 'Unable to fetch exercises' });
   }
@@ -136,7 +135,7 @@ router.get('/exercises/:id', [param('id').isInt()], async (req, res) => {
       isCustom: Boolean(exercise.is_custom),
       createdAt: exercise.created_at
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch exercise:', error);
     res.status(500).json({ error: 'Unable to fetch exercise' });
   }
@@ -170,7 +169,7 @@ router.post('/exercises', [
       name,
       message: 'Exercise created successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create exercise:', error);
     res.status(500).json({ error: 'Unable to create exercise' });
   }
@@ -210,7 +209,7 @@ router.put('/exercises/:id', [param('id').isInt()], async (req, res) => {
     );
 
     res.json({ message: 'Exercise updated successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update exercise:', error);
     res.status(500).json({ error: 'Unable to update exercise' });
   }
@@ -234,7 +233,7 @@ router.delete('/exercises/:id', [param('id').isInt()], async (req, res) => {
     }
 
     res.json({ message: 'Exercise deleted successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete exercise:', error);
     res.status(500).json({ error: 'Unable to delete exercise' });
   }
@@ -246,7 +245,7 @@ router.delete('/exercises/:id', [param('id').isInt()], async (req, res) => {
  * GET /api/fitness/templates
  * Get all workout templates
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/templates', async (req, res) => {
   try {
     const templates = await allAsync(
       'SELECT * FROM workout_templates ORDER BY is_active DESC, created_at DESC'
@@ -262,7 +261,7 @@ router.get(async (req: Request, res: Response) => {
       isActive: Boolean(t.is_active),
       createdAt: t.created_at
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch templates:', error);
     res.status(500).json({ error: 'Unable to fetch workout templates' });
   }
@@ -332,7 +331,7 @@ router.get('/templates/:id', [param('id').isInt()], async (req, res) => {
       isActive: Boolean(template.is_active),
       workoutDays: daysWithExercises
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch template:', error);
     res.status(500).json({ error: 'Unable to fetch workout template' });
   }
@@ -366,7 +365,7 @@ router.post('/templates', [
       name,
       message: 'Workout template created successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create template:', error);
     res.status(500).json({ error: 'Unable to create workout template' });
   }
@@ -405,7 +404,7 @@ router.put('/templates/:id', [param('id').isInt()], async (req, res) => {
     );
 
     res.json({ message: 'Template updated successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update template:', error);
     res.status(500).json({ error: 'Unable to update template' });
   }
@@ -429,7 +428,7 @@ router.delete('/templates/:id', [param('id').isInt()], async (req, res) => {
     }
 
     res.json({ message: 'Template deleted successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete template:', error);
     res.status(500).json({ error: 'Unable to delete template' });
   }
@@ -477,7 +476,7 @@ router.post('/templates/:templateId/days', [
       dayOrder,
       message: 'Workout day added successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to add workout day:', error);
     res.status(500).json({ error: 'Unable to add workout day' });
   }
@@ -522,7 +521,7 @@ router.post('/days/:dayId/exercises', [
       id: result.lastID,
       message: 'Exercise added to workout day'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to add exercise to day:', error);
     res.status(500).json({ error: 'Unable to add exercise to workout day' });
   }
@@ -534,7 +533,7 @@ router.post('/days/:dayId/exercises', [
  * GET /api/fitness/sessions
  * Get workout sessions with optional date filtering
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/sessions', async (req, res) => {
   try {
     const { startDate, endDate, limit } = req.query;
     
@@ -580,7 +579,7 @@ router.get(async (req: Request, res: Response) => {
       overallFeeling: s.overall_feeling,
       createdAt: s.created_at
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch sessions:', error);
     res.status(500).json({ error: 'Unable to fetch workout sessions' });
   }
@@ -660,7 +659,7 @@ router.get('/sessions/:id', [param('id').isInt()], async (req, res) => {
       overallFeeling: session.overall_feeling,
       exerciseLogs: Object.values(exerciseLogs)
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch session:', error);
     res.status(500).json({ error: 'Unable to fetch workout session' });
   }
@@ -692,7 +691,7 @@ router.post('/sessions', [
       date,
       message: 'Workout session created successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create session:', error);
     res.status(500).json({ error: 'Unable to create workout session' });
   }
@@ -730,7 +729,7 @@ router.put('/sessions/:id', [param('id').isInt()], async (req, res) => {
     );
 
     res.json({ message: 'Session updated successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update session:', error);
     res.status(500).json({ error: 'Unable to update workout session' });
   }
@@ -754,7 +753,7 @@ router.delete('/sessions/:id', [param('id').isInt()], async (req, res) => {
     }
 
     res.json({ message: 'Session deleted successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete session:', error);
     res.status(500).json({ error: 'Unable to delete workout session' });
   }
@@ -817,7 +816,7 @@ router.post('/sessions/:sessionId/logs', [
       isPR,
       message: isPR ? 'New personal record!' : 'Set logged successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to log exercise:', error);
     res.status(500).json({ error: 'Unable to log exercise' });
   }
@@ -854,7 +853,7 @@ router.put('/logs/:id', [param('id').isInt()], async (req, res) => {
     );
 
     res.json({ message: 'Log updated successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update log:', error);
     res.status(500).json({ error: 'Unable to update log' });
   }
@@ -866,7 +865,7 @@ router.put('/logs/:id', [param('id').isInt()], async (req, res) => {
  * GET /api/fitness/personal-records
  * Get personal records, optionally filtered by exercise
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/personal-records', async (req, res) => {
   try {
     const { exerciseId } = req.query;
     
@@ -897,7 +896,7 @@ router.get(async (req: Request, res: Response) => {
       reps: r.reps,
       date: r.date
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch personal records:', error);
     res.status(500).json({ error: 'Unable to fetch personal records' });
   }
@@ -909,7 +908,7 @@ router.get(async (req: Request, res: Response) => {
  * GET /api/fitness/measurements
  * Get body measurements history
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/measurements', async (req, res) => {
   try {
     const { limit } = req.query;
     
@@ -938,7 +937,7 @@ router.get(async (req: Request, res: Response) => {
       notes: m.notes,
       createdAt: m.created_at
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch measurements:', error);
     res.status(500).json({ error: 'Unable to fetch measurements' });
   }
@@ -970,7 +969,7 @@ router.post('/measurements', [
       date,
       message: 'Measurement recorded successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to add measurement:', error);
     res.status(500).json({ error: 'Unable to add measurement' });
   }
@@ -982,7 +981,7 @@ router.post('/measurements', [
  * GET /api/fitness/profile
  * Get the current user's fitness profile
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/profile', async (req, res) => {
   try {
     // For now, get the first profile (single user mode)
     const profile = await getAsync('SELECT * FROM fitness_profile LIMIT 1');
@@ -999,7 +998,7 @@ router.get(async (req: Request, res: Response) => {
       activityLevel: profile.activity_level,
       updatedAt: profile.updated_at
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch profile:', error);
     res.status(500).json({ error: 'Unable to fetch fitness profile' });
   }
@@ -1009,7 +1008,7 @@ router.get(async (req: Request, res: Response) => {
  * POST /api/fitness/profile
  * Create or update fitness profile
  */
-router.post(async (req: Request, res: Response) => {
+router.post('/profile', async (req, res) => {
   const { height, age, gender, activityLevel } = req.body;
 
   try {
@@ -1035,7 +1034,7 @@ router.post(async (req: Request, res: Response) => {
       );
       res.status(201).json({ id: result.lastID, message: 'Profile created successfully' });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to save profile:', error);
     res.status(500).json({ error: 'Unable to save fitness profile' });
   }
@@ -1047,7 +1046,7 @@ router.post(async (req: Request, res: Response) => {
  * GET /api/fitness/goals
  * Get fitness goals
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/goals', async (req, res) => {
   try {
     const { status } = req.query;
     
@@ -1079,7 +1078,7 @@ router.get(async (req: Request, res: Response) => {
       exerciseName: g.exercise_name,
       createdAt: g.created_at
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch goals:', error);
     res.status(500).json({ error: 'Unable to fetch fitness goals' });
   }
@@ -1111,7 +1110,7 @@ router.post('/goals', [
       goalType,
       message: 'Goal created successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create goal:', error);
     res.status(500).json({ error: 'Unable to create fitness goal' });
   }
@@ -1149,7 +1148,7 @@ router.put('/goals/:id', [param('id').isInt()], async (req, res) => {
     );
 
     res.json({ message: 'Goal updated successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update goal:', error);
     res.status(500).json({ error: 'Unable to update fitness goal' });
   }
@@ -1173,7 +1172,7 @@ router.delete('/goals/:id', [param('id').isInt()], async (req, res) => {
     }
 
     res.json({ message: 'Goal deleted successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete goal:', error);
     res.status(500).json({ error: 'Unable to delete fitness goal' });
   }
@@ -1231,7 +1230,7 @@ router.get('/progress/exercise/:exerciseId', [param('exerciseId').isInt()], asyn
       })),
       suggestedNextWeight: suggestedWeight
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch progress:', error);
     res.status(500).json({ error: 'Unable to fetch exercise progress' });
   }
@@ -1241,7 +1240,7 @@ router.get('/progress/exercise/:exerciseId', [param('exerciseId').isInt()], asyn
  * GET /api/fitness/stats/weekly
  * Get weekly workout statistics
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/stats/weekly', async (req, res) => {
   try {
     // Get sessions from last 7 days
     const sessions = await allAsync(
@@ -1290,7 +1289,7 @@ router.get(async (req: Request, res: Response) => {
         volume: Math.round(s.total_volume || 0)
       }))
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch weekly stats:', error);
     res.status(500).json({ error: 'Unable to fetch weekly statistics' });
   }
@@ -1300,7 +1299,7 @@ router.get(async (req: Request, res: Response) => {
  * GET /api/fitness/today
  * Get today's scheduled workout (if any) and quick stats
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/today', async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
 
@@ -1355,10 +1354,10 @@ router.get(async (req: Request, res: Response) => {
       } : null,
       weekSessionCount: weekSessionCount?.count || 0
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch today data:', error);
     res.status(500).json({ error: 'Unable to fetch today data' });
   }
 });
 
-export default router;
+export = router;

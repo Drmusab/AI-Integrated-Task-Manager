@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 import express from 'express';
 const router = express.Router();
 
@@ -12,7 +11,7 @@ const writeEvent = (res, event) => {
   res.write(`data: ${JSON.stringify(event)}\n\n`);
 };
 
-router.get(async (req: Request, res: Response) => {
+router.get('/events', async (req, res) => {
   const { since, lastEventId, limit, events, board_id, priority } = req.query;
   let filteredEvents = getEventsSince({ since, lastEventId, limit });
   
@@ -125,4 +124,4 @@ router.get('/stream', (req, res) => {
   });
 });
 
-export default router;
+export = router;

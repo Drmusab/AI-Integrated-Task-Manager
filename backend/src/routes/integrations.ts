@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 import express from 'express';
 const router = express.Router();
 import {  body, validationResult  } from 'express-validator';
@@ -191,7 +190,7 @@ router.post('/test-n8n-webhook', [
       status: response.status,
       response: response.data
     });
-  } catch (error: any) {
+  } catch (error) {
     res.status(400).json({
       success: false,
       message: 'Webhook test failed',
@@ -201,7 +200,7 @@ router.post('/test-n8n-webhook', [
 });
 
 // Trigger an n8n webhook
-router.post(async (req: Request, res: Response) => {
+router.post('/trigger-n8n-webhook', async (req, res) => {
   const { integrationId, payload } = req.body;
   
   if (!integrationId || !payload) {
@@ -245,7 +244,7 @@ router.post(async (req: Request, res: Response) => {
           status: response.status,
           response: response.data
         });
-      } catch (error: any) {
+      } catch (error) {
         res.status(400).json({
           success: false,
           message: 'Webhook trigger failed',
@@ -256,4 +255,4 @@ router.post(async (req: Request, res: Response) => {
   );
 });
 
-export default router;
+export = router;

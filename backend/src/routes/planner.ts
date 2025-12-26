@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+// @ts-nocheck
 /**
  * @fileoverview Routes for Daily Work Planner functionality.
  * Provides CRUD operations for daily priorities, notes, reflections, and time blocks.
@@ -45,7 +45,7 @@ router.get('/priorities', [
       createdAt: p.created_at,
       updatedAt: p.updated_at,
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch priorities:', error);
     res.status(500).json({ error: 'Unable to fetch priorities' });
   }
@@ -78,7 +78,7 @@ router.post('/priorities', [
     );
 
     res.json({ message: 'Priority saved successfully', date, position, title });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to save priority:', error);
     res.status(500).json({ error: 'Unable to save priority' });
   }
@@ -119,7 +119,7 @@ router.put('/priorities/:id', [
     );
 
     res.json({ message: 'Priority updated successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update priority:', error);
     res.status(500).json({ error: 'Unable to update priority' });
   }
@@ -141,7 +141,7 @@ router.delete('/priorities/:id', [param('id').isInt()], async (req, res) => {
       return res.status(404).json({ error: 'Priority not found' });
     }
     res.json({ message: 'Priority deleted successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete priority:', error);
     res.status(500).json({ error: 'Unable to delete priority' });
   }
@@ -171,7 +171,7 @@ router.get('/notes', [
       createdAt: note.created_at,
       updatedAt: note.updated_at,
     } : { date, content: '' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch notes:', error);
     res.status(500).json({ error: 'Unable to fetch notes' });
   }
@@ -200,7 +200,7 @@ router.post('/notes', [
     );
 
     res.json({ message: 'Notes saved successfully', date });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to save notes:', error);
     res.status(500).json({ error: 'Unable to save notes' });
   }
@@ -232,7 +232,7 @@ router.get('/reflections', [
       createdAt: reflection.created_at,
       updatedAt: reflection.updated_at,
     } : { date, wentWell: '', couldImprove: '', keyTakeaways: '' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch reflection:', error);
     res.status(500).json({ error: 'Unable to fetch reflection' });
   }
@@ -263,7 +263,7 @@ router.post('/reflections', [
     );
 
     res.json({ message: 'Reflection saved successfully', date });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to save reflection:', error);
     res.status(500).json({ error: 'Unable to save reflection' });
   }
@@ -304,7 +304,7 @@ router.get('/time-blocks', [
       createdAt: b.created_at,
       updatedAt: b.updated_at,
     })));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch time blocks:', error);
     res.status(500).json({ error: 'Unable to fetch time blocks' });
   }
@@ -345,7 +345,7 @@ router.post('/time-blocks', [
       endTime,
       title,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create time block:', error);
     res.status(500).json({ error: 'Unable to create time block' });
   }
@@ -392,7 +392,7 @@ router.put('/time-blocks/:id', [
     );
 
     res.json({ message: 'Time block updated successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update time block:', error);
     res.status(500).json({ error: 'Unable to update time block' });
   }
@@ -414,7 +414,7 @@ router.delete('/time-blocks/:id', [param('id').isInt()], async (req, res) => {
       return res.status(404).json({ error: 'Time block not found' });
     }
     res.json({ message: 'Time block deleted successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete time block:', error);
     res.status(500).json({ error: 'Unable to delete time block' });
   }
@@ -500,10 +500,10 @@ router.get('/overview', [
         dueDate: t.due_date,
       })),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch planner overview:', error);
     res.status(500).json({ error: 'Unable to fetch planner overview' });
   }
 });
 
-export default router;
+export = router;

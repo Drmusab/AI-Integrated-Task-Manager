@@ -3,9 +3,9 @@
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_PATH = ':memory:';
 import request from 'supertest';
-import app from '../src/app');
-import { initDatabase, clearDatabase } from '../src/utils/database');
-import { resetEvents } from '../src/services/eventBus');
+import app from '../src/app';
+import { initDatabase, clearDatabase } from '../src/utils/database';
+import { resetEvents } from '../src/services/eventBus';
 describe('Sync events API', () => {
     beforeAll(async () => {
         await initDatabase();

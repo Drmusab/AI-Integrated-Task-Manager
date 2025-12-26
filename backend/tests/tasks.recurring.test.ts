@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use strict";
-import { initDatabase, runAsync, getAsync } from '../src/utils/database');
-import { createRecurringTask } from '../src/services/tasks');
+import { initDatabase, runAsync, getAsync } from '../src/utils/database';
+import { createRecurringTask } from '../src/services/tasks';
 const createTestTask = async ({ dueDate, recurringRule }) => {
     const timestamp = Date.now();
     const board = await runAsync('INSERT INTO boards (name, description, template) VALUES (?, ?, ?)', [`QA Board ${timestamp}`, 'Board for recurring task tests', 0]);

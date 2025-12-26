@@ -5,8 +5,8 @@
  * Validates FullCalendar event transformation and date range filtering.
  */
 import request from 'supertest';
-import app from '../src/app');
-import { initDatabase, clearDatabase, runAsync, allAsync } from '../src/utils/database');
+import app from '../src/app';
+import { initDatabase, clearDatabase, runAsync, allAsync } from '../src/utils/database';
 describe('Calendar API', () => {
     beforeAll(async () => {
         await initDatabase();

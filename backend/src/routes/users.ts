@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 import express from 'express';
 const router = express.Router();
 import {  body, validationResult  } from 'express-validator';
@@ -52,7 +51,7 @@ router.post('/login', [
     });
 
     res.json({ token, user: sanitizeUser(user) });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Failed to login' });
   }
@@ -89,7 +88,7 @@ router.post('/register', [
     const user = await getAsync('SELECT * FROM users WHERE id = ?', [result.lastID]);
 
     res.status(201).json({ user: sanitizeUser(user) });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Failed to register user' });
   }
@@ -107,10 +106,10 @@ router.get('/me', authenticateToken, async (req, res) => {
     }
 
     res.json(user);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Fetch current user error:', error);
     res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
 
-export default router;
+export = router;

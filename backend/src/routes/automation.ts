@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 import express from 'express';
 const router = express.Router();
 import {  body, validationResult  } from 'express-validator';
@@ -218,14 +217,14 @@ router.get('/logs', (req, res) => {
 });
 
 // Manually trigger an automation rule
-router.post(async (req: Request, res: Response) => {
+router.post('/:id/trigger', async (req, res) => {
   const { id } = req.params;
   const payload = req.body?.payload ?? {};
 
   let rule;
   try {
     rule = await getAsync('SELECT * FROM automation_rules WHERE id = ? AND enabled = 1', [id]);
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 
@@ -239,13 +238,13 @@ router.post(async (req: Request, res: Response) => {
 
     try {
       triggerConfig = JSON.parse(rule.trigger_config);
-    } catch (error: any) {
+    } catch (error) {
       throw new Error('Invalid trigger configuration');
     }
 
     try {
       actionConfig = JSON.parse(rule.action_config);
-    } catch (error: any) {
+    } catch (error) {
       throw new Error('Invalid action configuration');
     }
 
@@ -277,7 +276,7 @@ router.post(async (req: Request, res: Response) => {
       message: 'Automation rule triggered successfully',
       result: actionResult,
     });
-  } catch (error: any) {
+  } catch (error) {
     try {
       await runAsync(
         'INSERT INTO automation_logs (rule_id, status, message) VALUES (?, ?, ?)',
@@ -295,4 +294,4 @@ router.post(async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+export = router;

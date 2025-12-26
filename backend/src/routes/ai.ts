@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 import express from 'express';
 import {  body, validationResult  } from 'express-validator';
 import {  runAsync, getAsync, allAsync  } from '../utils/database';
@@ -370,7 +369,7 @@ router.post('/command', [body('command').notEmpty().withMessage('Command text is
     }
 
     return res.status(400).json({ error: 'Command detected but no action executed.' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('AI command execution failed:', error);
     return res.status(500).json({ error: 'Failed to execute command', details: error.message });
   }
@@ -413,4 +412,4 @@ router.get('/patterns', async (_req, res) => {
   });
 });
 
-export default router;
+export = router;

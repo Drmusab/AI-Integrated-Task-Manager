@@ -3,8 +3,8 @@
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_PATH = ':memory:';
 import request from 'supertest';
-import app from '../src/app');
-import { initDatabase, clearDatabase, runAsync, getAsync } from '../src/utils/database');
+import app from '../src/app';
+import { initDatabase, clearDatabase, runAsync, getAsync } from '../src/utils/database';
 const createBoardWithColumns = async () => {
     const timestamp = Date.now();
     const board = await runAsync('INSERT INTO boards (name, description, template) VALUES (?, ?, ?)', [`Test Board ${timestamp}`, 'Board for CRUD tests', 0]);

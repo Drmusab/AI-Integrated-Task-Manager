@@ -3,8 +3,8 @@
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_PATH = ':memory:';
 import request from 'supertest';
-import app from '../src/app');
-import { initDatabase, clearDatabase, runAsync, getAsync, allAsync } from '../src/utils/database');
+import app from '../src/app';
+import { initDatabase, clearDatabase, runAsync, getAsync, allAsync } from '../src/utils/database';
 describe('Fitness API operations', () => {
     beforeAll(async () => {
         await initDatabase();

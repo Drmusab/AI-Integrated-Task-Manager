@@ -1,12 +1,11 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 import express from 'express';
 const router = express.Router();
 import {  body, validationResult  } from 'express-validator';
 import {  runAsync, allAsync, getAsync  } from '../utils/database';
 
 // Get all settings
-router.get(async (req: Request, res: Response) => {
+router.get('/', async (req, res) => {
   try {
     const settings = await allAsync('SELECT * FROM settings');
     
@@ -17,14 +16,14 @@ router.get(async (req: Request, res: Response) => {
     });
     
     res.json(settingsObj);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to get settings:', error);
     res.status(500).json({ error: 'Failed to get settings' });
   }
 });
 
 // Get a specific setting
-router.get(async (req: Request, res: Response) => {
+router.get('/:key', async (req, res) => {
   try {
     const { key } = req.params;
     const setting = await getAsync('SELECT * FROM settings WHERE key = ?', [key]);
@@ -34,7 +33,7 @@ router.get(async (req: Request, res: Response) => {
     }
     
     res.json({ key: setting.key, value: setting.value });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to get setting:', error);
     res.status(500).json({ error: 'Failed to get setting' });
   }
@@ -71,7 +70,7 @@ router.put('/:key', [
     }
     
     res.json({ message: 'Setting updated successfully', key, value });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update setting:', error);
     res.status(500).json({ error: 'Failed to update setting' });
   }
@@ -109,10 +108,10 @@ router.post('/report-schedule', [
       message: 'Report schedule updated successfully. Server restart required for changes to take effect.',
       schedule: { day, hour, minute }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update report schedule:', error);
     res.status(500).json({ error: 'Failed to update report schedule' });
   }
 });
 
-export default router;
+export = router;

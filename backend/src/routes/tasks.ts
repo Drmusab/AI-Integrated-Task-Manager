@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { Request, Response } from 'express';
 /**
  * @fileoverview Task management API routes.
  * Provides CRUD operations for tasks with validation, history tracking,
@@ -238,7 +237,7 @@ router.get('/', listTasksValidations, (req, res) => {
  * Advanced task search endpoint with filtering, sorting, and pagination
  * @route GET /api/tasks/search/advanced
  */
-router.get(async (req: Request, res: Response) => {
+router.get('/search/advanced', async (req, res) => {
   try {
     const filters = {
       search: req.query.search,
@@ -277,7 +276,7 @@ router.get(async (req: Request, res: Response) => {
       offset: filters.offset,
       has_more: (filters.offset + filters.limit) < total
     });
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -382,7 +381,7 @@ router.post('/', createTaskValidations, async (req, res) => {
   try {
     const result = await createTaskRecord(req.body);
     res.status(201).json({ ...result, message: 'Task created successfully' });
-  } catch (error: any) {
+  } catch (error) {
     handleTaskError(res, error);
   }
 });
@@ -397,7 +396,7 @@ router.post('/create', apiKeyAuth, createTaskValidations, async (req, res) => {
   try {
     const result = await createTaskRecord(req.body);
     res.status(201).json({ ...result, message: 'Task created successfully', source: 'automation' });
-  } catch (error: any) {
+  } catch (error) {
     handleTaskError(res, error);
   }
 });
@@ -412,7 +411,7 @@ router.put('/:id', updateTaskValidations, async (req, res) => {
   try {
     const result = await updateTaskRecord(req.params.id, req.body);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     handleTaskError(res, error);
   }
 });
@@ -427,17 +426,17 @@ router.post('/update', apiKeyAuth, webhookUpdateValidations, async (req, res) =>
   try {
     const result = await updateTaskRecord(req.body.id, req.body);
     res.json({ ...result, source: 'automation' });
-  } catch (error: any) {
+  } catch (error) {
     handleTaskError(res, error);
   }
 });
 
 // Delete a task
-router.delete(async (req: Request, res: Response) => {
+router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteTaskRecord(req.params.id, req.body);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     handleTaskError(res, error);
   }
 });
@@ -452,7 +451,7 @@ router.post('/delete', apiKeyAuth, webhookDeleteValidations, async (req, res) =>
   try {
     const result = await deleteTaskRecord(req.body.id, req.body);
     res.json({ ...result, source: 'automation' });
-  } catch (error: any) {
+  } catch (error) {
     handleTaskError(res, error);
   }
 });
@@ -632,7 +631,7 @@ import bulkOps from '../utils/bulkOperations';
 /**
  * Bulk update tasks
  */
-router.post(async (req: Request, res: Response) => {
+router.post('/bulk/update', async (req, res) => {
   const { taskIds, updates, userId } = req.body;
   
   if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
@@ -646,7 +645,7 @@ router.post(async (req: Request, res: Response) => {
   try {
     const result = await bulkOps.bulkUpdateTasks(taskIds, updates, userId);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -654,7 +653,7 @@ router.post(async (req: Request, res: Response) => {
 /**
  * Bulk delete tasks
  */
-router.post(async (req: Request, res: Response) => {
+router.post('/bulk/delete', async (req, res) => {
   const { taskIds, userId } = req.body;
   
   if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
@@ -664,7 +663,7 @@ router.post(async (req: Request, res: Response) => {
   try {
     const result = await bulkOps.bulkDeleteTasks(taskIds, userId);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -672,7 +671,7 @@ router.post(async (req: Request, res: Response) => {
 /**
  * Bulk move tasks to column
  */
-router.post(async (req: Request, res: Response) => {
+router.post('/bulk/move', async (req, res) => {
   const { taskIds, columnId, userId } = req.body;
   
   if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
@@ -686,7 +685,7 @@ router.post(async (req: Request, res: Response) => {
   try {
     const result = await bulkOps.bulkMoveTasks(taskIds, columnId, userId);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -694,7 +693,7 @@ router.post(async (req: Request, res: Response) => {
 /**
  * Bulk duplicate tasks
  */
-router.post(async (req: Request, res: Response) => {
+router.post('/bulk/duplicate', async (req, res) => {
   const { taskIds, userId } = req.body;
   
   if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
@@ -704,12 +703,12 @@ router.post(async (req: Request, res: Response) => {
   try {
     const result = await bulkOps.bulkDuplicateTasks(taskIds, userId);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-export default router;
+export = router;
 
 function normalizeOptionalInt(value, { treatUndefinedAsNull = false } = {}) {
   if (value === undefined) {
@@ -1073,7 +1072,7 @@ async function updateTaskRecord(id, data) {
           });
         }
       );
-    } catch (error: any) {
+    } catch (error) {
       reject({ status: 500, message: error.message });
     }
   });

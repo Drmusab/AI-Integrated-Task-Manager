@@ -4,8 +4,8 @@
  * @fileoverview Tests for Chronos Time Intelligence System routes
  */
 import request from 'supertest';
-import app from '../src/app');
-import { initDatabase } from '../src/utils/database');
+import app from '../src/app';
+import { initDatabase } from '../src/utils/database';
 let authToken;
 let testUserId;
 let testBlockId;
