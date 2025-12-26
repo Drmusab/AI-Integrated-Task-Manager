@@ -193,27 +193,42 @@ router.get('/', listTasksValidations, (req, res) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    
-    // Get tags for each task
-    const tasksWithTags = rows.map(task => {
-      return new Promise((resolve) => {
-        db.all(
-          'SELECT tg.* FROM tags tg JOIN task_tags tt ON tg.id = tt.tag_id WHERE tt.task_id = ?',
-          [task.id],
-          (err, tagRows) => {
-            if (err) {
-              resolve({ ...task, tags: [] });
-            } else {
-              resolve({ ...task, tags: tagRows });
-            }
+
+    if (!rows.length) {
+      return res.json([]);
+    }
+
+    const taskIds = rows.map(task => task.id);
+    const placeholders = taskIds.map(() => '?').join(',');
+
+    db.all(
+      `SELECT tt.task_id, tg.*
+       FROM task_tags tt
+       JOIN tags tg ON tg.id = tt.tag_id
+       WHERE tt.task_id IN (${placeholders})`,
+      taskIds,
+      (tagErr, tagRows = []) => {
+        if (tagErr) {
+          // In case of tag lookup issues, still return tasks without tags
+          return res.json(rows.map(task => ({ ...task, tags: [] })));
+        }
+
+        const tagsByTask = tagRows.reduce((acc, tagRow) => {
+          if (!acc[tagRow.task_id]) {
+            acc[tagRow.task_id] = [];
           }
-        );
-      });
-    });
-    
-    Promise.all(tasksWithTags).then(tasks => {
-      res.json(tasks);
-    });
+          acc[tagRow.task_id].push(tagRow);
+          return acc;
+        }, {});
+
+        const tasksWithTags = rows.map(task => ({
+          ...task,
+          tags: tagsByTask[task.id] || []
+        }));
+
+        res.json(tasksWithTags);
+      }
+    );
   });
 });
 
