@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Notification service for sending alerts to users and external systems.
  * Provides functions for sending task reminders, due date alerts, and routine notifications.

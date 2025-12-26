@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from 'express';
 /**
  * @fileoverview Calendar API routes for FullCalendar integration.

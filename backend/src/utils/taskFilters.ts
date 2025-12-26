@@ -190,7 +190,7 @@ function buildWhereClause(filters) {
  * @param {Object} sort - Sort options
  * @returns {string} SQL ORDER BY clause
  */
-function buildOrderByClause(sort = {}) {
+function buildOrderByClause(sort: any = {}) {
   const validColumns = [
     'title', 'created_at', 'updated_at', 'due_date', 
     'priority', 'position', 'execution_status'
@@ -224,7 +224,7 @@ function buildOrderByClause(sort = {}) {
  * @param {Object} options - Filter and search options
  * @returns {Promise<Array>} Filtered tasks
  */
-async function searchTasks(options = {}) {
+async function searchTasks(options: any = {}) {
   const { whereClause, params } = buildWhereClause(options);
   const orderByClause = buildOrderByClause(options.sort);
   

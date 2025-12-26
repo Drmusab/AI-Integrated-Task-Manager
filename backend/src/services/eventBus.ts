@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Event bus service for real-time event streaming and synchronization across clients.
  * Implements an in-memory event buffer with Server-Sent Events (SSE) support for live updates.

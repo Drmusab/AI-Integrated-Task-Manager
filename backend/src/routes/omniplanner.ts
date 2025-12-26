@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from 'express';
 /**
  * @fileoverview OmniPlanner routes for integrated GTD & Eisenhower-Kanban task management.

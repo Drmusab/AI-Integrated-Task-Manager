@@ -29,30 +29,31 @@ const startScheduler = () => {
           }
           
           for (const task of tasks) {
-            const dueDate = new Date(task.due_date);
+            const taskAny: any = task;
+            const dueDate = new Date(taskAny.due_date);
             const nowDate = new Date();
-            const minutesUntilDue = Math.floor((dueDate - nowDate) / MILLISECONDS_PER_MINUTE);
+            const minutesUntilDue = Math.floor((dueDate.getTime() - nowDate.getTime()) / MILLISECONDS_PER_MINUTE);
             
             // Check if task is overdue (more than 1 hour past due date)
-            if (nowDate - dueDate > MILLISECONDS_PER_HOUR) {
+            if (nowDate.getTime() - dueDate.getTime() > MILLISECONDS_PER_HOUR) {
               // Trigger automation for overdue task
-              triggerAutomation('task_overdue', { taskId: task.id, columnId: task.column_id });
+              triggerAutomation('task_overdue', { taskId: taskAny.id, columnId: taskAny.column_id });
               
               // Send notification for overdue task
               sendTaskDueNotification(task, minutesUntilDue);
             }
             // Check if task is due (within 1 hour of due date)
-            else if (nowDate - dueDate >= 0) {
+            else if (nowDate.getTime() - dueDate.getTime() >= 0) {
               // Trigger automation for due task
-              triggerAutomation('task_due', { taskId: task.id, columnId: task.column_id });
+              triggerAutomation('task_due', { taskId: taskAny.id, columnId: taskAny.column_id });
               
               // Send notification for due task
               sendTaskDueNotification(task, 0);
             }
             // Check if task is due soon (within 1 hour of due date)
-            else if (dueDate - nowDate <= MILLISECONDS_PER_HOUR) {
+            else if (dueDate.getTime() - nowDate.getTime() <= MILLISECONDS_PER_HOUR) {
               // Trigger automation for task due soon
-              triggerAutomation('task_due_soon', { taskId: task.id, columnId: task.column_id });
+              triggerAutomation('task_due_soon', { taskId: taskAny.id, columnId: taskAny.column_id });
               
               // Send notification for task due soon
               sendTaskDueNotification(task, minutesUntilDue);
@@ -81,8 +82,9 @@ const startScheduler = () => {
           
           for (const task of tasks) {
             try {
-              const recurringRule = JSON.parse(task.recurring_rule);
-              const lastDueDate = new Date(task.due_date);
+              const taskAny: any = task;
+              const recurringRule = JSON.parse(taskAny.recurring_rule);
+              const lastDueDate = new Date(taskAny.due_date);
 
               // Check if we need to create a new instance of this recurring task
               if (shouldCreateRecurringTask(lastDueDate, recurringRule, today)) {
@@ -92,7 +94,9 @@ const startScheduler = () => {
                 sendRoutineReminder(task);
               }
             } catch (error) {
-              console.error(`Error processing recurring task ${task.id}:`, error);
+              const errorAny: any = error;
+              const taskAny: any = task;
+              console.error(`Error processing recurring task ${taskAny.id}:`, errorAny);
             }
           }
         }
@@ -117,18 +121,19 @@ const startScheduler = () => {
           }
 
           for (const task of tasks) {
-            const recurringRule = parseRecurringRule(task.recurring_rule);
+            const taskAny: any = task;
+            const recurringRule = parseRecurringRule(taskAny.recurring_rule);
 
             if (recurringRule.status === 'paused') {
               continue;
             }
 
-            const dueDate = new Date(task.due_date);
+            const dueDate = new Date(taskAny.due_date);
             if (Number.isNaN(dueDate.getTime())) {
               continue;
             }
 
-            const minutesUntilDue = Math.floor((dueDate - now) / MILLISECONDS_PER_MINUTE);
+            const minutesUntilDue = Math.floor((dueDate.getTime() - now.getTime()) / MILLISECONDS_PER_MINUTE);
             const shouldNotify = minutesUntilDue <= recurringRule.notificationLeadTime
               && minutesUntilDue >= (recurringRule.notificationLeadTime - 1);
 
@@ -141,10 +146,11 @@ const startScheduler = () => {
                 recurringRule.lastNotificationAt = new Date().toISOString();
                 await db.run(
                   'UPDATE tasks SET recurring_rule = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-                  [JSON.stringify(recurringRule), task.id]
+                  [JSON.stringify(recurringRule), taskAny.id]
                 );
               } catch (error) {
-                console.error(`Failed to send routine reminder for task ${task.id}:`, error);
+                const errorAny: any = error;
+                console.error(`Failed to send routine reminder for task ${taskAny.id}:`, errorAny);
               }
             }
           }

@@ -121,7 +121,7 @@ const allAsync = (sql: string, params: any[] = []): Promise<any[]> => {
  * await initDatabase();
  * console.log('Database initialized successfully');
  */
-const initDatabase = () => {
+const initDatabase = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     db.serialize(async () => {
       try {

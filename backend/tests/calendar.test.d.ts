@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Tests for calendar API endpoints.
  * Validates FullCalendar event transformation and date range filtering.

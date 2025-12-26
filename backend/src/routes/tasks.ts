@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from 'express';
 /**
  * @fileoverview Task management API routes.

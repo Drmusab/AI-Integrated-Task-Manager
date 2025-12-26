@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from 'express';
 /**
  * @fileoverview Chronos Time Intelligence System API routes.

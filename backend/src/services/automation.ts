@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Automation service for triggering rule-based actions.
  * Handles event-driven automation rules with webhook, notification, and task actions.

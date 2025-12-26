@@ -70,7 +70,7 @@ const triggerWebhook = async (webhookId, payload) => {
     }
 
     // Prepare HTTP headers
-    const headers = {
+    const headers: any = {
       'Content-Type': 'application/json'
     };
 

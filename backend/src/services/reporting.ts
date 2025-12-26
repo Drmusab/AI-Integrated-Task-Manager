@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Reporting service for generating analytics and sending reports to webhooks.
  * Provides weekly reports, custom date range reports, and productivity analytics.

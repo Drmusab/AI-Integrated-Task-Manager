@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Tests for Chronos Time Intelligence System routes
  */

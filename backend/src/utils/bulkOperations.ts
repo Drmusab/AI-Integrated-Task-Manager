@@ -69,7 +69,7 @@ async function bulkUpdateTasks(taskIds, updates, userId = null) {
 
     // Emit events for real-time updates
     for (const taskId of taskIds) {
-      emitEvent('task_updated', { taskId, updates });
+      emitEvent('task', 'updated', { taskId, updates });
     }
 
     // Trigger automation
@@ -119,7 +119,7 @@ async function bulkDeleteTasks(taskIds, userId = null) {
 
     // Emit events
     for (const taskId of taskIds) {
-      emitEvent('task_deleted', { taskId });
+      emitEvent('task', 'deleted', { taskId });
     }
 
     return {
