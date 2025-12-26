@@ -1,0 +1,203 @@
+{
+  "description": "Example Block Tree Structures",
+  "version": "1.0.0",
+  
+  "examples": {
+    "simple_page": {
+      "description": "A simple page with heading and text",
+      "tree": {
+        "roots": ["page-1"],
+        "blocks": {
+          "page-1": {
+            "id": "page-1",
+            "type": "page",
+            "data": {
+              "title": "Welcome Page",
+              "icon": "👋",
+              "description": "A simple example page"
+            },
+            "children": ["heading-1", "text-1"],
+            "parentId": null,
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {
+              "permissions": {
+                "canEdit": true,
+                "canDelete": true,
+                "canMove": true,
+                "canShare": true
+              }
+            }
+          },
+          "heading-1": {
+            "id": "heading-1",
+            "type": "heading",
+            "data": {
+              "content": "Introduction",
+              "level": 1
+            },
+            "children": [],
+            "parentId": "page-1",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {
+              "permissions": {
+                "canEdit": true,
+                "canDelete": true,
+                "canMove": true,
+                "canShare": true
+              }
+            }
+          },
+          "text-1": {
+            "id": "text-1",
+            "type": "text",
+            "data": {
+              "content": "This is a simple text block demonstrating the block-based architecture."
+            },
+            "children": [],
+            "parentId": "page-1",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {
+              "permissions": {
+                "canEdit": true,
+                "canDelete": true,
+                "canMove": true,
+                "canShare": true
+              }
+            }
+          }
+        },
+        "metadata": {
+          "version": "1.0.0",
+          "createdAt": "2025-01-01T00:00:00.000Z",
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
+      }
+    },
+    
+    "kanban_board": {
+      "description": "A Kanban board with columns and cards - demonstrates how existing Kanban features map to blocks",
+      "tree": {
+        "roots": ["board-1"],
+        "blocks": {
+          "board-1": {
+            "id": "board-1",
+            "type": "kanban_board",
+            "data": {
+              "name": "Project Tasks",
+              "description": "Main project board"
+            },
+            "children": ["column-1", "column-2", "column-3"],
+            "parentId": null,
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {}
+          },
+          "column-1": {
+            "id": "column-1",
+            "type": "kanban_column",
+            "data": {
+              "name": "To Do",
+              "color": "#3498db"
+            },
+            "children": ["card-1"],
+            "parentId": "board-1",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {}
+          },
+          "column-2": {
+            "id": "column-2",
+            "type": "kanban_column",
+            "data": {
+              "name": "In Progress",
+              "color": "#f39c12",
+              "wipLimit": 3
+            },
+            "children": [],
+            "parentId": "board-1",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {}
+          },
+          "column-3": {
+            "id": "column-3",
+            "type": "kanban_column",
+            "data": {
+              "name": "Done",
+              "color": "#2ecc71",
+              "isDone": true
+            },
+            "children": [],
+            "parentId": "board-1",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {}
+          },
+          "card-1": {
+            "id": "card-1",
+            "type": "kanban_card",
+            "data": {
+              "title": "Design new feature",
+              "description": "Create mockups and wireframes",
+              "priority": "high",
+              "dueDate": "2025-01-15",
+              "tags": ["design", "ui"],
+              "estimatedHours": 8
+            },
+            "children": ["todo-1", "todo-2"],
+            "parentId": "column-1",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {}
+          },
+          "todo-1": {
+            "id": "todo-1",
+            "type": "todo",
+            "data": {
+              "content": "Create wireframes",
+              "completed": true,
+              "priority": "high"
+            },
+            "children": [],
+            "parentId": "card-1",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {}
+          },
+          "todo-2": {
+            "id": "todo-2",
+            "type": "todo",
+            "data": {
+              "content": "Get design approval",
+              "completed": false,
+              "priority": "high"
+            },
+            "children": [],
+            "parentId": "card-1",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "version": 1,
+            "metadata": {}
+          }
+        },
+        "metadata": {
+          "version": "1.0.0",
+          "createdAt": "2025-01-01T00:00:00.000Z",
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
+      }
+    }
+  }
+}
