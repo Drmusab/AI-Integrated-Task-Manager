@@ -105,6 +105,10 @@ describe('boardUtils', () => {
     expect(parseDroppableId('abc:123')).toBe(null);
   });
 
+  test('parseDroppableId treats missing swimlane segment as null', () => {
+    expect(parseDroppableId('7:')).toEqual({ columnId: 7, swimlaneId: null });
+  });
+
   test('groupTasksByColumnAndSwimlane handles empty board', () => {
     const emptyBoard = { columns: [], swimlanes: [] };
     const tasks = [{ id: 1, column_id: 1, swimlane_id: null, position: 0 }];
@@ -115,9 +119,17 @@ describe('boardUtils', () => {
 
   test('groupTasksByColumnAndSwimlane handles null board', () => {
     const tasks = [{ id: 1, column_id: 1, swimlane_id: null, position: 0 }];
-    
+
     const grouped = groupTasksByColumnAndSwimlane(null, tasks);
     expect(grouped).toEqual({});
+  });
+
+  test('groupTasksByColumnAndSwimlane handles missing tasks gracefully', () => {
+    const grouped = groupTasksByColumnAndSwimlane(baseBoard, null);
+
+    expect(Object.keys(grouped)).toEqual(['1', '2']);
+    expect(grouped[1].null).toEqual([]);
+    expect(grouped[2].null).toEqual([]);
   });
 
   test('reorderTasksAfterMove handles missing task', () => {
