@@ -16,6 +16,27 @@ import { getCalendarEvents } from '../../services/calendarService';
 import { updateTask } from '../../services/taskService';
 import { useNotification } from '../../contexts/NotificationContext';
 
+interface Task {
+  id: number;
+  title: string;
+  description?: string;
+  due_date?: string;
+  priority?: string;
+  column_id?: number;
+  swimlane_id?: number;
+  assigned_to?: number;
+  pinned?: boolean;
+  tags?: string[];
+  subtasks?: any[];
+  recurring_rule?: string;
+}
+
+interface TaskCalendarProps {
+  boardId?: number;
+  onEventClick?: (task: Task) => void;
+  onDateClick?: (date: Date) => void;
+}
+
 /**
  * TaskCalendar component that displays tasks in a FullCalendar view.
  * 
@@ -25,8 +46,8 @@ import { useNotification } from '../../contexts/NotificationContext';
  * @param {Function} props.onDateClick - Callback when a date is clicked
  * @returns {JSX.Element} TaskCalendar component
  */
-const TaskCalendar = ({ boardId, onEventClick, onDateClick }) => {
-  const calendarRef = useRef(null);
+const TaskCalendar: React.FC<TaskCalendarProps> = ({ boardId, onEventClick, onDateClick }) => {
+  const calendarRef = useRef<FullCalendar>(null);
   const muiTheme = useMuiTheme();
   const { mode } = useTheme();
   const { showError, showSuccess } = useNotification();
@@ -41,10 +62,10 @@ const TaskCalendar = ({ boardId, onEventClick, onDateClick }) => {
    * @param {Function} failureCallback - Callback on failure
    */
   const fetchEvents = useCallback(
-    async (fetchInfo, successCallback, failureCallback) => {
+    async (fetchInfo: any, successCallback: (events: any[]) => void, failureCallback: (error: any) => void) => {
       try {
         setLoading(true);
-        const params = {
+        const params: any = {
           start: fetchInfo.startStr,
           end: fetchInfo.endStr,
         };
@@ -74,12 +95,12 @@ const TaskCalendar = ({ boardId, onEventClick, onDateClick }) => {
    * @param {Object} info - FullCalendar event click info
    */
   const handleEventClick = useCallback(
-    (info) => {
+    (info: any) => {
       const taskId = parseInt(info.event.id, 10);
       const extendedProps = info.event.extendedProps;
       
       // Build task object from event data
-      const task = {
+      const task: Task = {
         id: taskId,
         title: info.event.title.replace('📌 ', ''), // Remove pin emoji
         description: extendedProps.description,
@@ -107,7 +128,7 @@ const TaskCalendar = ({ boardId, onEventClick, onDateClick }) => {
    * @param {Object} info - FullCalendar date click info
    */
   const handleDateClick = useCallback(
-    (info) => {
+    (info: any) => {
       if (onDateClick) {
         onDateClick(info.date);
       }
@@ -121,7 +142,7 @@ const TaskCalendar = ({ boardId, onEventClick, onDateClick }) => {
    * @param {Object} info - FullCalendar event drop info
    */
   const handleEventDrop = useCallback(
-    async (info) => {
+    async (info: any) => {
       try {
         const taskId = parseInt(info.event.id, 10);
         const newDueDate = info.event.start;
@@ -149,7 +170,7 @@ const TaskCalendar = ({ boardId, onEventClick, onDateClick }) => {
    * @param {Object} info - FullCalendar event resize info
    */
   const handleEventResize = useCallback(
-    async (info) => {
+    async (info: any) => {
       try {
         const taskId = parseInt(info.event.id, 10);
         const newDueDate = info.event.start;

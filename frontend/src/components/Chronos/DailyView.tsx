@@ -27,10 +27,27 @@ import { format } from 'date-fns';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-function DailyView({ settings, activeSession, onSessionUpdate }) {
-  const [todayBlocks, setTodayBlocks] = useState([]);
-  const [todaySessions, setTodaySessions] = useState([]);
-  const [loading, setLoading] = useState(true);
+interface ChronosSettings {
+  work_hours_start?: string;
+  work_hours_end?: string;
+  [key: string]: any;
+}
+
+interface ActiveSession {
+  id?: number;
+  [key: string]: any;
+}
+
+interface DailyViewProps {
+  settings: ChronosSettings | null;
+  activeSession: ActiveSession | null;
+  onSessionUpdate: () => void;
+}
+
+function DailyView({ settings, activeSession, onSessionUpdate }: DailyViewProps) {
+  const [todayBlocks, setTodayBlocks] = useState<any[]>([]);
+  const [todaySessions, setTodaySessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetchTodayData();
@@ -63,7 +80,7 @@ function DailyView({ settings, activeSession, onSessionUpdate }) {
     }
   };
 
-  const handleStartBlock = async (block) => {
+  const handleStartBlock = async (block: any) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
@@ -90,13 +107,13 @@ function DailyView({ settings, activeSession, onSessionUpdate }) {
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   };
 
-  const isBlockCurrent = (block) => {
+  const isBlockCurrent = (block: any) => {
     const currentTime = getCurrentTime();
     return currentTime >= block.start_time && currentTime <= block.end_time;
   };
 
-  const completedBlocks = todayBlocks.filter(block =>
-    todaySessions.some(s => s.time_block_id === block.id && s.status === 'completed')
+  const completedBlocks = todayBlocks.filter((block: any) =>
+    todaySessions.some((s: any) => s.time_block_id === block.id && s.status === 'completed')
   );
 
   const progressPercentage = todayBlocks.length > 0

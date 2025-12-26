@@ -24,11 +24,22 @@ import TimeBlockDialog from './TimeBlockDialog';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-function PlannerMode({ settings, onBlockCreated }) {
+interface ChronosSettings {
+  work_hours_start?: string;
+  work_hours_end?: string;
+  [key: string]: any;
+}
+
+interface PlannerModeProps {
+  settings: ChronosSettings | null;
+  onBlockCreated?: () => void;
+}
+
+function PlannerMode({ settings, onBlockCreated }: PlannerModeProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const [timeBlocks, setTimeBlocks] = useState([]);
-  const [selectedBlock, setSelectedBlock] = useState(null);
-  const [showDialog, setShowDialog] = useState(false);
+  const [timeBlocks, setTimeBlocks] = useState<any[]>([]);
+  const [selectedBlock, setSelectedBlock] = useState<any>(null);
+  const [showDialog, setShowDialog] = useState<boolean>(false);
 
   useEffect(() => {
     fetchWeekBlocks();
@@ -62,12 +73,12 @@ function PlannerMode({ settings, onBlockCreated }) {
     setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
   };
 
-  const handleCreateBlock = (date) => {
+  const handleCreateBlock = (date: Date) => {
     setSelectedBlock({ date: format(date, 'yyyy-MM-dd') });
     setShowDialog(true);
   };
 
-  const handleEditBlock = (block) => {
+  const handleEditBlock = (block: any) => {
     setSelectedBlock(block);
     setShowDialog(true);
   };
@@ -79,9 +90,9 @@ function PlannerMode({ settings, onBlockCreated }) {
     if (onBlockCreated) onBlockCreated();
   };
 
-  const getBlocksForDate = (date) => {
+  const getBlocksForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return timeBlocks.filter(block => block.date === dateStr);
+    return timeBlocks.filter((block: any) => block.date === dateStr);
   };
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));

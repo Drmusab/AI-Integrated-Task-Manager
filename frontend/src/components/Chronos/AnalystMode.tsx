@@ -38,11 +38,23 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 const COLORS = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'];
 
-function AnalystMode({ settings }) {
-  const [analytics, setAnalytics] = useState(null);
-  const [productivityScore, setProductivityScore] = useState(null);
-  const [timeRange, setTimeRange] = useState(7);
-  const [loading, setLoading] = useState(true);
+interface ChronosSettings {
+  work_hours_start?: string;
+  work_hours_end?: string;
+  break_duration?: number;
+  pomodoro_duration?: number;
+  [key: string]: any;
+}
+
+interface AnalystModeProps {
+  settings: ChronosSettings | null;
+}
+
+function AnalystMode({ settings }: AnalystModeProps) {
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [productivityScore, setProductivityScore] = useState<any>(null);
+  const [timeRange, setTimeRange] = useState<number>(7);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchProductivityScore = async () => {
     try {
@@ -95,7 +107,7 @@ function AnalystMode({ settings }) {
           <InputLabel>Time Range</InputLabel>
           <Select
             value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
+            onChange={(e) => setTimeRange(Number(e.target.value))}
             label="Time Range"
           >
             <MenuItem value={7}>Last 7 Days</MenuItem>
@@ -200,7 +212,7 @@ function AnalystMode({ settings }) {
                   outerRadius={100}
                   label
                 >
-                  {analytics.categoryBreakdown.map((entry, index) => (
+                  {analytics.categoryBreakdown.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
