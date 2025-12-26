@@ -111,6 +111,10 @@ export enum BlockType {
   AI_CHAT = 'ai_chat',
   AI_SUGGESTION = 'ai_suggestion',
   
+  // Database Blocks
+  DATABASE = 'database',
+  DB_ROW = 'db_row',
+  
   // Other Blocks
   DIVIDER = 'divider',
   QUOTE = 'quote',
@@ -339,6 +343,33 @@ export interface ListItemBlockData {
   content: string;
 }
 
+/**
+ * Database block - container for a universal database
+ */
+export interface DatabaseBlockData {
+  name: string;
+  description?: string;
+  icon?: string;
+  /** Stored as JSON string in block data */
+  properties: string;  // JSON.stringify(Property[])
+  defaultViewId?: string;
+}
+
+/**
+ * Database Row block - single row in a database
+ */
+export interface DatabaseRowBlockData {
+  /** Database ID this row belongs to */
+  databaseId: string;
+  
+  /** Property values indexed by property ID, stored as JSON string */
+  values: string;  // JSON.stringify(Record<string, PropertyValue>)
+  
+  /** Row-level metadata */
+  archived?: boolean;
+  pinned?: boolean;
+}
+
 // ===== Concrete Block Types =====
 
 /**
@@ -364,6 +395,8 @@ export type Block =
   | (BaseBlock & { type: BlockType.AI_BLOCK; data: AIBlockData })
   | (BaseBlock & { type: BlockType.AI_CHAT; data: AIChatBlockData })
   | (BaseBlock & { type: BlockType.AI_SUGGESTION; data: AISuggestionBlockData })
+  | (BaseBlock & { type: BlockType.DATABASE; data: DatabaseBlockData })
+  | (BaseBlock & { type: BlockType.DB_ROW; data: DatabaseRowBlockData })
   | (BaseBlock & { type: BlockType.DIVIDER; data: DividerBlockData })
   | (BaseBlock & { type: BlockType.QUOTE; data: QuoteBlockData })
   | (BaseBlock & { type: BlockType.CODE; data: CodeBlockData })

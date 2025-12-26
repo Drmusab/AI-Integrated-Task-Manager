@@ -37,9 +37,11 @@ import islamicRoutes from './routes/islamic';
 import omniplannerRoutes from './routes/omniplanner';
 import chronosRoutes from './routes/chronos';
 import calendarRoutes from './routes/calendar';
+import databaseRoutes from './routes/database';
 import {  startScheduler  } from './services/scheduler';
 import {  requestTimer  } from './middleware/performance';
 import logger from './utils/logger';
+import { initializeBlockSystem } from './services/blockSystem';
 
 /** Express application instance */
 const app: Application = express();
@@ -136,6 +138,7 @@ app.use('/api/islamic', islamicRoutes);
 app.use('/api/omniplanner', omniplannerRoutes);
 app.use('/api/chronos', chronosRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/databases', databaseRoutes);
 
 import {  errorHandler  } from './middleware/errorHandler';
 
@@ -168,6 +171,9 @@ app.use(errorHandler);
 // Initialize database and start server (skip in test environment)
 if (process.env.NODE_ENV !== 'test') {
   initDatabase().then(() => {
+    // Initialize block system
+    initializeBlockSystem();
+    
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
