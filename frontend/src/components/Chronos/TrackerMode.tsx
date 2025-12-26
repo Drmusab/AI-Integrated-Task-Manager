@@ -31,31 +31,51 @@ import { formatDistanceToNow } from 'date-fns';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-function TrackerMode({ settings, activeSession, onSessionUpdate }) {
-  const [sessions, setSessions] = useState([]);
-  const [sessionNotes, setSessionNotes] = useState('');
-  const [showStopDialog, setShowStopDialog] = useState(false);
-  const [energyLevel, setEnergyLevel] = useState(3);
-  const [focusQuality, setFocusQuality] = useState(3);
-  const [productivityRating, setProductivityRating] = useState(3);
-  const [interruptions, setInterruptions] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState(0);
+interface ChronosSettings {
+  work_hours_start?: string;
+  work_hours_end?: string;
+  [key: string]: any;
+}
+
+interface ActiveSession {
+  id: number;
+  start_time: string;
+  [key: string]: any;
+}
+
+interface TrackerModeProps {
+  settings: ChronosSettings | null;
+  activeSession: ActiveSession | null;
+  onSessionUpdate: () => void;
+}
+
+function TrackerMode({ settings, activeSession, onSessionUpdate }: TrackerModeProps) {
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessionNotes, setSessionNotes] = useState<string>('');
+  const [showStopDialog, setShowStopDialog] = useState<boolean>(false);
+  const [energyLevel, setEnergyLevel] = useState<number>(3);
+  const [focusQuality, setFocusQuality] = useState<number>(3);
+  const [productivityRating, setProductivityRating] = useState<number>(3);
+  const [interruptions, setInterruptions] = useState<number>(0);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   useEffect(() => {
     fetchRecentSessions();
   }, []);
 
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timeout | undefined;
     if (activeSession) {
       interval = setInterval(() => {
         const start = new Date(activeSession.start_time);
         const now = new Date();
-        const elapsed = Math.floor((now - start) / 1000);
+        const elapsed = Math.floor((now.getTime() - start.getTime()) / 1000);
         setElapsedTime(elapsed);
       }, 1000);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [activeSession]);
 
   const fetchRecentSessions = async () => {
@@ -71,6 +91,7 @@ function TrackerMode({ settings, activeSession, onSessionUpdate }) {
   };
 
   const handlePauseSession = async () => {
+    if (!activeSession) return;
     try {
       const token = localStorage.getItem('token');
       await axios.post(
@@ -85,6 +106,7 @@ function TrackerMode({ settings, activeSession, onSessionUpdate }) {
   };
 
   const handleResumeSession = async () => {
+    if (!activeSession) return;
     try {
       const token = localStorage.getItem('token');
       await axios.post(
@@ -99,6 +121,7 @@ function TrackerMode({ settings, activeSession, onSessionUpdate }) {
   };
 
   const handleStopSession = async () => {
+    if (!activeSession) return;
     try {
       const token = localStorage.getItem('token');
       await axios.post(
@@ -126,7 +149,7 @@ function TrackerMode({ settings, activeSession, onSessionUpdate }) {
     }
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
@@ -294,7 +317,7 @@ function TrackerMode({ settings, activeSession, onSessionUpdate }) {
             </Typography>
             <Rating
               value={energyLevel}
-              onChange={(e, value) => setEnergyLevel(value)}
+              onChange={(e, value) => setEnergyLevel(value || 0)}
               max={5}
             />
           </Box>
@@ -305,7 +328,7 @@ function TrackerMode({ settings, activeSession, onSessionUpdate }) {
             </Typography>
             <Rating
               value={focusQuality}
-              onChange={(e, value) => setFocusQuality(value)}
+              onChange={(e, value) => setFocusQuality(value || 0)}
               max={5}
             />
           </Box>
@@ -316,7 +339,7 @@ function TrackerMode({ settings, activeSession, onSessionUpdate }) {
             </Typography>
             <Rating
               value={productivityRating}
-              onChange={(e, value) => setProductivityRating(value)}
+              onChange={(e, value) => setProductivityRating(value || 0)}
               max={5}
             />
           </Box>

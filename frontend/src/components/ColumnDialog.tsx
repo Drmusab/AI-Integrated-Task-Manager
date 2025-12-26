@@ -15,8 +15,23 @@ import {
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
 
-const ColumnDialog = ({ open, column, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
+interface Column {
+  id?: number;
+  name: string;
+  color: string;
+  icon: string;
+  position: number;
+}
+
+interface ColumnDialogProps {
+  open: boolean;
+  column?: Column | null;
+  onClose: () => void;
+  onSave: (formData: Column) => void;
+}
+
+const ColumnDialog: React.FC<ColumnDialogProps> = ({ open, column, onClose, onSave }) => {
+  const [formData, setFormData] = useState<Column>({
     name: '',
     color: '#3498db',
     icon: '',
@@ -36,7 +51,7 @@ const ColumnDialog = ({ open, column, onClose, onSave }) => {
     }
   }, [column, open]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,

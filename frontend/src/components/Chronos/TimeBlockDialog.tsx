@@ -43,7 +43,36 @@ const COLORS = [
   { name: 'Yellow', value: '#f1c40f' }
 ];
 
-function TimeBlockDialog({ open, onClose, onSave, block, settings }) {
+interface TimeBlock {
+  id?: number;
+  title?: string;
+  description?: string;
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+  color?: string;
+  category?: string;
+  energy_required?: string;
+  focus_level?: string;
+  notes?: string;
+  [key: string]: any;
+}
+
+interface ChronosSettings {
+  work_hours_start?: string;
+  work_hours_end?: string;
+  [key: string]: any;
+}
+
+interface TimeBlockDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onSave: () => void;
+  block?: TimeBlock | null;
+  settings?: ChronosSettings | null;
+}
+
+function TimeBlockDialog({ open, onClose, onSave, block, settings }: TimeBlockDialogProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -67,7 +96,7 @@ function TimeBlockDialog({ open, onClose, onSave, block, settings }) {
     }
   }, [block]);
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -93,7 +122,7 @@ function TimeBlockDialog({ open, onClose, onSave, block, settings }) {
       }
       
       onSave();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving time block:', error);
       alert(error.response?.data?.error || 'Failed to save time block');
     } finally {

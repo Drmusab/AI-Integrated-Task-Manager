@@ -22,7 +22,31 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-function ChronosSettings({ open, onClose, settings, onSettingsUpdated }) {
+interface ChronosSettings {
+  work_hours_start?: string;
+  work_hours_end?: string;
+  default_block_duration?: number;
+  default_break_duration?: number;
+  pomodoro_work_duration?: number;
+  pomodoro_break_duration?: number;
+  pomodoro_long_break?: number;
+  auto_schedule_enabled?: boolean;
+  conflict_warnings_enabled?: boolean;
+  buffer_time_enabled?: boolean;
+  default_buffer_minutes?: number;
+  focus_mode_default?: boolean;
+  break_reminders_enabled?: boolean;
+  idle_timeout_minutes?: number;
+}
+
+interface ChronosSettingsProps {
+  open: boolean;
+  onClose: () => void;
+  settings: ChronosSettings | null;
+  onSettingsUpdated: () => void;
+}
+
+function ChronosSettings({ open, onClose, settings, onSettingsUpdated }: ChronosSettingsProps) {
   const [formData, setFormData] = useState({
     work_hours_start: '09:00',
     work_hours_end: '17:00',
@@ -62,7 +86,7 @@ function ChronosSettings({ open, onClose, settings, onSettingsUpdated }) {
     }
   }, [settings]);
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
