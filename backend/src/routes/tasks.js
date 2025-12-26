@@ -849,11 +849,36 @@ async function updateTaskRecord(id, data) {
   const assignedTo = normalizeOptionalInt(data.assigned_to ?? data.assignedTo);
   const updatedBy = normalizeOptionalInt(data.updated_by ?? data.updatedBy);
 
-  return new Promise((resolve, reject) => {
-    db.get('SELECT * FROM tasks WHERE id = ?', [id], (err, currentTask) => {
+  const dbGet = (query, params = []) => new Promise((resolve, reject) => {
+    db.get(query, params, (err, row) => {
       if (err) {
-        return reject({ status: 500, message: err.message });
+        return reject(err);
       }
+      resolve(row);
+    });
+  });
+
+  const dbAll = (query, params = []) => new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(rows);
+    });
+  });
+
+  const dbRun = (query, params = []) => new Promise((resolve, reject) => {
+    db.run(query, params, function(err) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(this);
+    });
+  });
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const currentTask = await dbGet('SELECT * FROM tasks WHERE id = ?', [id]);
 
       if (!currentTask) {
         return reject({ status: 404, message: 'Task not found' });
@@ -862,6 +887,13 @@ async function updateTaskRecord(id, data) {
       const updates = [];
       const values = [];
       const updatedFields = {};
+
+      const targetColumnId = columnId ?? currentTask.column_id;
+      const targetSwimlaneId = swimlaneId ?? currentTask.swimlane_id;
+      const positionChanged = position !== undefined;
+      const columnChanged = columnId !== undefined && columnId !== currentTask.column_id;
+      const swimlaneChanged = swimlaneId !== undefined && swimlaneId !== currentTask.swimlane_id;
+      const needsReindex = positionChanged || columnChanged || swimlaneChanged;
 
       if (title !== undefined) {
         updates.push('title = ?');
@@ -905,9 +937,11 @@ async function updateTaskRecord(id, data) {
       }
 
       if (position !== undefined) {
-        updates.push('position = ?');
-        values.push(position);
         updatedFields.position = position;
+        if (!needsReindex) {
+          updates.push('position = ?');
+          values.push(position);
+        }
       }
 
       if (priority !== undefined) {
@@ -949,8 +983,66 @@ async function updateTaskRecord(id, data) {
         }
       }
 
-      if (updates.length === 0) {
+      if (updates.length === 0 && !needsReindex) {
         return reject({ status: 400, message: 'No valid fields to update' });
+      }
+
+      if (needsReindex) {
+        try {
+          const existingTasks = await dbAll(
+            `SELECT id FROM tasks WHERE column_id = ?
+             AND ((swimlane_id IS NULL AND ? IS NULL) OR swimlane_id = ?)
+             ORDER BY position ASC`,
+            [targetColumnId, targetSwimlaneId, targetSwimlaneId]
+          );
+
+          const siblingIds = existingTasks
+            .map(task => task.id)
+            .filter(taskId => taskId !== Number(id));
+
+          const insertionIndex = Math.max(
+            0,
+            Math.min(position ?? siblingIds.length, siblingIds.length)
+          );
+
+          siblingIds.splice(insertionIndex, 0, Number(id));
+
+          await dbRun('BEGIN TRANSACTION');
+
+          try {
+            if (updates.length > 0) {
+              updates.push('updated_at = CURRENT_TIMESTAMP');
+              await dbRun(`UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`, [...values, id]);
+            }
+
+            for (let index = 0; index < siblingIds.length; index++) {
+              await dbRun(
+                'UPDATE tasks SET position = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [index, siblingIds[index]]
+              );
+            }
+
+            await dbRun('COMMIT');
+          } catch (transactionErr) {
+            await dbRun('ROLLBACK');
+            throw transactionErr;
+          }
+
+          const updatedTask = await dbGet('SELECT * FROM tasks WHERE id = ?', [id]);
+          updatedFields.position = insertionIndex;
+
+          emitEvent('task', 'updated', {
+            id: Number(id),
+            changes: updatedFields,
+            task: updatedTask,
+          });
+
+          resolve({ message: 'Task updated successfully', task: updatedTask, changes: updatedFields });
+        } catch (reindexErr) {
+          reject({ status: 500, message: reindexErr.message });
+        }
+
+        return;
       }
 
       updates.push('updated_at = CURRENT_TIMESTAMP');
@@ -979,7 +1071,9 @@ async function updateTaskRecord(id, data) {
           });
         }
       );
-    });
+    } catch (error) {
+      reject({ status: 500, message: error.message });
+    }
   });
 }
 

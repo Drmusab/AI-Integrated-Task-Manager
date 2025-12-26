@@ -226,6 +226,7 @@ const Board = () => {
       });
 
       setTasks(updatedTasks);
+      broadcastTasksChange();
       showSuccess('تم نقل المهمة بنجاح');
     } catch (error) {
       showError('فشل نقل المهمة');
