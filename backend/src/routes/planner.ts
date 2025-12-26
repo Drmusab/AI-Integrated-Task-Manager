@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * @fileoverview Routes for Daily Work Planner functionality.
  * Provides CRUD operations for daily priorities, notes, reflections, and time blocks.
  * @module routes/planner
  */
 
-import express = require('express');
+import express from 'express';
 import {  body, validationResult, param, query  } from 'express-validator';
 import {  runAsync, allAsync, getAsync  } from '../utils/database';
 

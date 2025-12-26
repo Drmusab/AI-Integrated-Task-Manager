@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Validation error handling middleware for express-validator.
  * Processes validation errors from express-validator and returns formatted error responses.

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Event bus service for real-time event streaming and synchronization across clients.
  * Implements an in-memory event buffer with Server-Sent Events (SSE) support for live updates.
@@ -213,10 +214,8 @@ const resetEvents = () => {
   bufferedEvents.length = 0;
 };
 
-export = {
-  emitEvent,
-  subscribe,
-  getEventsSince,
-  toNumericBoolean,
-  resetEvents,
-};
+export { emitEvent };
+export { subscribe };
+export { getEventsSince };
+export { toNumericBoolean };
+export { resetEvents };

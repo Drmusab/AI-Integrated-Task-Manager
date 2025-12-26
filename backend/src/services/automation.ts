@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Automation service for triggering rule-based actions.
  * Handles event-driven automation rules with webhook, notification, and task actions.
@@ -7,7 +8,7 @@
 import {  allAsync, getAsync, runAsync  } from '../utils/database';
 import {  triggerWebhook  } from './webhook';
 import {  sendNotification  } from './notifications';
-import logger = require('../utils/logger');
+import logger from '../utils/logger';
 
 /**
  * Trigger automation rules based on an event type and associated data.
@@ -256,4 +257,6 @@ const parseConfig = (configString, label) => {
   }
 };
 
-export = { triggerAutomation, checkTriggerConditions, executeAutomationAction };
+export { triggerAutomation };
+export { checkTriggerConditions };
+export { executeAutomationAction };

@@ -5,7 +5,7 @@
  */
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import logger = require('../utils/logger');
+import logger from '../utils/logger';
 
 /**
  * Custom application error class with additional properties for HTTP status and details.
@@ -113,8 +113,6 @@ const asyncHandler = (fn: RequestHandler): RequestHandler => {
   };
 };
 
-export = {
-  AppError,
-  errorHandler,
-  asyncHandler
-};
+export { AppError };
+export { errorHandler };
+export { asyncHandler };

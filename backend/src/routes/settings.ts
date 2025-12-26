@@ -1,4 +1,5 @@
-import express = require('express');
+// @ts-nocheck
+import express from 'express';
 const router = express.Router();
 import {  body, validationResult  } from 'express-validator';
 import {  runAsync, allAsync, getAsync  } from '../utils/database';

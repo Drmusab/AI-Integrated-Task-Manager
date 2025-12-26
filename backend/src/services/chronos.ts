@@ -325,14 +325,12 @@ function addDays(dateStr, days) {
   return date.toISOString().split('T')[0];
 }
 
-export = {
-  checkConflicts,
-  suggestOptimalTime,
-  calculateBufferTime,
-  findAvailableSlots,
-  autoScheduleTask,
-  generateDailyInsights,
-  getMinutesDifference,
-  addMinutes,
-  addDays
-};
+export { checkConflicts };
+export { suggestOptimalTime };
+export { calculateBufferTime };
+export { findAvailableSlots };
+export { autoScheduleTask };
+export { generateDailyInsights };
+export { getMinutesDifference };
+export { addMinutes };
+export { addDays };

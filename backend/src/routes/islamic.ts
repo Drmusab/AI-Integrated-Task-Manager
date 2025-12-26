@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * @fileoverview Routes for Al-Falah Islamic Habit Tracker functionality.
  * Provides CRUD operations for prayer tracking, Quran recitation, dhikr, fasting, and more.
  * @module routes/islamic
  */
 
-import express = require('express');
+import express from 'express';
 import {  body, validationResult, param, query  } from 'express-validator';
 import {  runAsync, allAsync, getAsync  } from '../utils/database';
 

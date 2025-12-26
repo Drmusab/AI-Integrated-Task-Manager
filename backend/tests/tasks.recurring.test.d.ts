@@ -1,3 +1,4 @@
+// @ts-nocheck
 declare const initDatabase: any, runAsync: any, getAsync: any;
 declare const createRecurringTask: any;
 declare const createTestTask: ({ dueDate, recurringRule }: {

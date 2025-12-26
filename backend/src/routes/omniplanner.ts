@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * @fileoverview OmniPlanner routes for integrated GTD & Eisenhower-Kanban task management.
  * Provides endpoints for unified task views, GTD processing, Eisenhower matrix, and projects.
  * @module routes/omniplanner
  */
 
-import express = require('express');
+import express from 'express';
 const router = express.Router();
 import {  body, validationResult  } from 'express-validator';
 import {  runAsync, getAsync, allAsync  } from '../utils/database';

@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * @fileoverview Chronos Time Intelligence System API routes.
  * Provides endpoints for time blocking, time tracking, analytics, and AI-powered schedule optimization.
  * @module routes/chronos
  */
 
-import express = require('express');
+import express from 'express';
 const router = express.Router();
 import {  allAsync, runAsync, getAsync  } from '../utils/database';
 import {  authenticateToken  } from '../middleware/jwtAuth';

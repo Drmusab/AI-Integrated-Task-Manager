@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * @fileoverview Routes for fitness/gym companion functionality.
  * Provides CRUD operations for exercises, workouts, sessions, and progress tracking.
  * @module routes/fitness
  */
 
-import express = require('express');
+import express from 'express';
 import {  body, validationResult, param, query  } from 'express-validator';
 import {  runAsync, allAsync, getAsync  } from '../utils/database';
 

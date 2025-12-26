@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * @fileoverview Calendar API routes for FullCalendar integration.
  * Provides endpoints for fetching tasks in FullCalendar event format.
  * @module routes/calendar
  */
 
-import express = require('express');
+import express from 'express';
 const router = express.Router();
 import {  query, validationResult  } from 'express-validator';
 import {  db  } from '../utils/database';

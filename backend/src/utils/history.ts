@@ -34,4 +34,4 @@ const recordTaskHistory = (taskId, action, oldValue, newValue, userId) => {
   );
 };
 
-export = { recordTaskHistory };
+export { recordTaskHistory };

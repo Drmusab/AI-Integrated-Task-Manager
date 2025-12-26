@@ -198,7 +198,7 @@ function sanitizeJSON(input, maxDepth = 10) {
  * @param {Object} options - Validation options {min, max, integer}
  * @returns {number|null} Sanitized number or null if invalid
  */
-function sanitizeNumber(input, options = {}) {
+function sanitizeNumber(input, options: any = {}) {
   const num = Number(input);
   
   if (isNaN(num) || !isFinite(num)) {
@@ -233,14 +233,12 @@ function removeNullBytes(input) {
   return input.replace(/\0/g, '');
 }
 
-export = {
-  sanitizeHTML,
-  sanitizeSQL,
-  sanitizeEmail,
-  sanitizeURL,
-  sanitizeFilename,
-  sanitizeMarkdown,
-  sanitizeJSON,
-  sanitizeNumber,
-  removeNullBytes
-};
+export { sanitizeHTML };
+export { sanitizeSQL };
+export { sanitizeEmail };
+export { sanitizeURL };
+export { sanitizeFilename };
+export { sanitizeMarkdown };
+export { sanitizeJSON };
+export { sanitizeNumber };
+export { removeNullBytes };

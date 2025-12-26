@@ -178,4 +178,4 @@ const createRecurringTask = async (originalTask, recurringRule) => {
   return taskId;
 };
 
-export = { createRecurringTask };
+export { createRecurringTask };

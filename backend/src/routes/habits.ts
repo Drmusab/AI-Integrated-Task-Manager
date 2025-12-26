@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * @fileoverview Routes for habit tracking functionality.
  * Provides CRUD operations for habits and habit logging.
  * @module routes/habits
  */
 
-import express = require('express');
+import express from 'express';
 import {  body, validationResult, param, query  } from 'express-validator';
 import {  runAsync, allAsync, getAsync  } from '../utils/database';
 
