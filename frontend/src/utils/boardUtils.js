@@ -21,7 +21,7 @@ export const parseDroppableId = (droppableId) => {
   }
 
   const columnId = Number(columnPart);
-  const swimlaneId = swimlanePart === undefined || swimlanePart === 'null'
+  const swimlaneId = swimlanePart === undefined || swimlanePart === '' || swimlanePart === 'null'
     ? null
     : Number(swimlanePart);
 
@@ -54,24 +54,25 @@ export const reorderTasksAfterMove = (
   destinationDroppableId,
   destinationIndex
 ) => {
+  const normalizedTasks = Array.isArray(tasks) ? tasks : [];
   const sourceLocation = parseDroppableId(sourceDroppableId);
   const destinationLocation = parseDroppableId(destinationDroppableId);
 
   if (!sourceLocation || !destinationLocation) {
-    return tasks;
+    return normalizedTasks;
   }
 
-  const movedTask = tasks.find(task => String(task.id) === String(movedTaskId));
+  const movedTask = normalizedTasks.find(task => String(task.id) === String(movedTaskId));
 
   if (!movedTask) {
-    return tasks;
+    return normalizedTasks;
   }
 
   const sameLocation =
     sourceLocation.columnId === destinationLocation.columnId &&
     (sourceLocation.swimlaneId ?? null) === (destinationLocation.swimlaneId ?? null);
 
-  const remainingTasks = tasks
+  const remainingTasks = normalizedTasks
     .filter(task => String(task.id) !== String(movedTaskId))
     .map(task => ({ ...task }));
 
@@ -123,6 +124,7 @@ export const groupTasksByColumnAndSwimlane = (board, tasks) => {
 
   const columns = Array.isArray(board.columns) ? board.columns : [];
   const swimlanes = Array.isArray(board.swimlanes) ? board.swimlanes : [];
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
 
   const grouped = {};
 
@@ -133,7 +135,7 @@ export const groupTasksByColumnAndSwimlane = (board, tasks) => {
     });
   });
 
-  tasks.forEach(task => {
+  safeTasks.forEach(task => {
     const columnId = task.column_id;
     const swimlaneId = task.swimlane_id ?? 'null';
 
