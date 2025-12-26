@@ -14,6 +14,7 @@ import mongoSanitize from 'express-mongo-sanitize';
 import swaggerUi from 'swagger-ui-express';
 import path from 'path';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 
 dotenv.config();
 
@@ -42,9 +43,13 @@ import {  startScheduler  } from './services/scheduler';
 import {  requestTimer  } from './middleware/performance';
 import logger from './utils/logger';
 import { initializeBlockSystem } from './services/blockSystem';
+import { CollaborationServer } from './services/collaborationServer';
 
 /** Express application instance */
 const app: Application = express();
+
+/** HTTP server instance for Socket.IO */
+const httpServer = createServer(app);
 
 /** Server port from environment or default to 3001 */
 const PORT = process.env.PORT || 3001;
@@ -174,10 +179,24 @@ if (process.env.NODE_ENV !== 'test') {
     // Initialize block system
     initializeBlockSystem();
     
-    app.listen(PORT, () => {
+    // Initialize collaboration server
+    const collaborationServer = new CollaborationServer(httpServer);
+    
+    httpServer.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`Collaboration server ready for WebSocket connections`);
       startScheduler();
+    });
+    
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      logger.info('SIGTERM signal received: closing HTTP server');
+      collaborationServer.shutdown();
+      httpServer.close(() => {
+        logger.info('HTTP server closed');
+        process.exit(0);
+      });
     });
   }).catch(err => {
     logger.error('Failed to initialize database', { error: err.message });
