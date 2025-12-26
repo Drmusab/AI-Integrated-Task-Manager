@@ -30,6 +30,8 @@ import {
   CodeBlockData,
   ListBlockData,
   ListItemBlockData,
+  DatabaseBlockData,
+  DatabaseRowBlockData,
 } from '../types/blocks';
 
 import {
@@ -527,6 +529,76 @@ export const listItemBlockSchema: BlockSchema<BlockType.LIST_ITEM> = {
   },
 };
 
+// ===== Database Block Schemas =====
+
+export const databaseBlockSchema: BlockSchema<BlockType.DATABASE> = {
+  type: BlockType.DATABASE,
+  name: 'Database',
+  description: 'Universal database with schema and views',
+  category: 'other',
+  canHaveChildren: true,
+  allowedChildren: [BlockType.DB_ROW],
+  defaultData: {
+    name: 'New Database',
+    properties: '[]',
+  },
+  validate: (data: DatabaseBlockData) => {
+    const errors = [];
+    const nameError = validateRequired(data.name, 'name');
+    if (nameError) errors.push(nameError);
+    
+    const propertiesError = validateRequired(data.properties, 'properties');
+    if (propertiesError) errors.push(propertiesError);
+    
+    // Validate properties is valid JSON
+    try {
+      JSON.parse(data.properties);
+    } catch (e) {
+      errors.push({
+        field: 'properties',
+        message: 'properties must be valid JSON',
+        code: 'INVALID_JSON',
+      });
+    }
+    
+    return createValidationResult(errors);
+  },
+};
+
+export const databaseRowBlockSchema: BlockSchema<BlockType.DB_ROW> = {
+  type: BlockType.DB_ROW,
+  name: 'Database Row',
+  description: 'Single row in a database',
+  category: 'other',
+  canHaveChildren: true,
+  allowedParents: [BlockType.DATABASE],
+  defaultData: {
+    databaseId: '',
+    values: '{}',
+  },
+  validate: (data: DatabaseRowBlockData) => {
+    const errors = [];
+    const dbIdError = validateRequired(data.databaseId, 'databaseId');
+    if (dbIdError) errors.push(dbIdError);
+    
+    const valuesError = validateRequired(data.values, 'values');
+    if (valuesError) errors.push(valuesError);
+    
+    // Validate values is valid JSON
+    try {
+      JSON.parse(data.values);
+    } catch (e) {
+      errors.push({
+        field: 'values',
+        message: 'values must be valid JSON',
+        code: 'INVALID_JSON',
+      });
+    }
+    
+    return createValidationResult(errors);
+  },
+};
+
 // ===== Export All Schemas =====
 
 export const allBlockSchemas = [
@@ -548,6 +620,8 @@ export const allBlockSchemas = [
   aiBlockSchema,
   aiChatBlockSchema,
   aiSuggestionBlockSchema,
+  databaseBlockSchema,
+  databaseRowBlockSchema,
   dividerBlockSchema,
   quoteBlockSchema,
   codeBlockSchema,
