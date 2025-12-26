@@ -1,8 +1,8 @@
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const { db, getAsync, runAsync } = require('../utils/database');
-const { checkTriggerConditions, executeAutomationAction } = require('../services/automation');
+import {  body, validationResult  } from 'express-validator';
+import {  db, getAsync, runAsync  } from '../utils/database';
+import {  checkTriggerConditions, executeAutomationAction  } from '../services/automation';
 
 // Get all automation rules
 router.get('/', (req, res) => {
@@ -293,4 +293,4 @@ router.post('/:id/trigger', async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

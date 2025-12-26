@@ -4,11 +4,11 @@
  * @module routes/chronos
  */
 
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { allAsync, runAsync, getAsync } = require('../utils/database');
-const { authenticateToken } = require('../middleware/jwtAuth');
-const { autoScheduleTask, addMinutes, getMinutesDifference } = require('../services/chronos');
+import {  allAsync, runAsync, getAsync  } from '../utils/database';
+import {  authenticateToken  } from '../middleware/jwtAuth';
+import {  autoScheduleTask, addMinutes, getMinutesDifference  } from '../services/chronos';
 
 // ==================== TIME BLOCKS ENDPOINTS ====================
 
@@ -1105,4 +1105,4 @@ router.get('/integrate/daily-blocks/:date', authenticateToken, async (req, res) 
   }
 });
 
-module.exports = router;
+export = router;

@@ -4,7 +4,7 @@
  * @module middleware/apiKeyAuth
  */
 
-const crypto = require('crypto');
+import crypto = require('crypto');
 
 /**
  * Middleware enforcing API key authentication for automation/webhook endpoints.
@@ -24,7 +24,7 @@ const crypto = require('crypto');
  * @example
  * app.use('/api/webhooks', apiKeyAuth, webhookRoutes);
  */
-module.exports = function apiKeyAuth(req, res, next) {
+export = function apiKeyAuth(req, res, next) {
   const expected = process.env.N8N_API_KEY;
 
   // Skip authentication if API key is not configured (development mode)

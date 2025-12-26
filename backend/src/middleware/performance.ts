@@ -4,7 +4,7 @@
  * @module middleware/performance
  */
 
-const logger = require('../utils/logger');
+import logger = require('../utils/logger');
 
 /**
  * Express middleware that tracks request processing time and logs slow requests.
@@ -196,7 +196,7 @@ class QueryPerformanceTracker {
  */
 const queryTracker = new QueryPerformanceTracker();
 
-module.exports = {
+export = {
   requestTimer,
   measureTime,
   queryTracker

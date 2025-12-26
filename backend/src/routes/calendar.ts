@@ -4,10 +4,10 @@
  * @module routes/calendar
  */
 
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { query, validationResult } = require('express-validator');
-const { db } = require('../utils/database');
+import {  query, validationResult  } from 'express-validator';
+import {  db  } from '../utils/database';
 
 /**
  * Priority to color mapping for calendar events.
@@ -226,4 +226,4 @@ router.get('/events', calendarEventsValidations, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

@@ -5,9 +5,9 @@
  * @module services/notifications
  */
 
-const { allAsync } = require('../utils/database');
-const { triggerWebhook } = require('./webhook');
-const logger = require('../utils/logger');
+import {  allAsync  } from '../utils/database';
+import {  triggerWebhook  } from './webhook';
+import logger = require('../utils/logger');
 
 /**
  * Send a notification to configured channels (n8n webhooks).
@@ -196,7 +196,7 @@ const sendTaskDueNotification = async (task, minutesUntilDue) => {
   });
 };
 
-module.exports = {
+export = {
   sendNotification,
   sendTaskReminder,
   sendRoutineReminder,

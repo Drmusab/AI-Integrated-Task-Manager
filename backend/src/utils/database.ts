@@ -5,10 +5,12 @@
  * @module utils/database
  */
 
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
-const bcrypt = require('bcryptjs');
+import sqlite3Module = require('sqlite3');
+import path = require('path');
+import fs = require('fs');
+import bcrypt = require('bcryptjs');
+
+const sqlite3 = sqlite3Module.verbose();
 
 // Database path configuration
 const DEFAULT_DB_PATH = path.join(__dirname, '../../data/kanban.db');
@@ -1273,4 +1275,4 @@ const clearDatabase = async () => {
   }
 };
 
-module.exports = { db, initDatabase, runAsync, getAsync, allAsync, clearDatabase };
+export = { db, initDatabase, runAsync, getAsync, allAsync, clearDatabase };

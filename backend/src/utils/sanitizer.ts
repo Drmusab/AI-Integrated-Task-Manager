@@ -233,7 +233,7 @@ function removeNullBytes(input) {
   return input.replace(/\0/g, '');
 }
 
-module.exports = {
+export = {
   sanitizeHTML,
   sanitizeSQL,
   sanitizeEmail,

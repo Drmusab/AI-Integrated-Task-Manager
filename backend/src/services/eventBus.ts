@@ -4,7 +4,7 @@
  * @module services/eventBus
  */
 
-const { EventEmitter } = require('events');
+import {  EventEmitter  } from 'events';
 
 /**
  * Maximum number of events to buffer in memory.
@@ -213,7 +213,7 @@ const resetEvents = () => {
   bufferedEvents.length = 0;
 };
 
-module.exports = {
+export = {
   emitEvent,
   subscribe,
   getEventsSince,

@@ -4,10 +4,10 @@
  * @module routes/omniplanner
  */
 
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const { runAsync, getAsync, allAsync } = require('../utils/database');
+import {  body, validationResult  } from 'express-validator';
+import {  runAsync, getAsync, allAsync  } from '../utils/database';
 
 /**
  * Calculate Eisenhower quadrant based on urgency and importance
@@ -808,4 +808,4 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

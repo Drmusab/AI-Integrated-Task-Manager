@@ -1,11 +1,11 @@
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import {  body, validationResult  } from 'express-validator';
+import bcrypt = require('bcryptjs');
+import jwt = require('jsonwebtoken');
 
-const { getAsync, runAsync } = require('../utils/database');
-const { authenticateToken } = require('../middleware/jwtAuth');
+import {  getAsync, runAsync  } from '../utils/database';
+import {  authenticateToken  } from '../middleware/jwtAuth';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -111,4 +111,4 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

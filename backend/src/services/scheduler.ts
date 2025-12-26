@@ -1,9 +1,9 @@
-const cron = require('node-cron');
-const { db } = require('../utils/database');
-const { triggerAutomation } = require('./automation');
-const { sendTaskDueNotification, sendRoutineReminder } = require('./notifications');
-const { createRecurringTask } = require('./tasks');
-const { generateWeeklyReport, sendReportToN8n } = require('./reporting');
+import cron = require('node-cron');
+import {  db  } from '../utils/database';
+import {  triggerAutomation  } from './automation';
+import {  sendTaskDueNotification, sendRoutineReminder  } from './notifications';
+import {  createRecurringTask  } from './tasks';
+import {  generateWeeklyReport, sendReportToN8n  } from './reporting';
 
 // Time constants
 const MILLISECONDS_PER_MINUTE = 60 * 1000;
@@ -243,4 +243,4 @@ const parseRecurringRule = (ruleString) => {
   }
 };
 
-module.exports = { startScheduler };
+export = { startScheduler };

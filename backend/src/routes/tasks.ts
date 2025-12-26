@@ -5,15 +5,15 @@
  * @module routes/tasks
  */
 
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { body, query, param, validationResult } = require('express-validator');
-const { db } = require('../utils/database');
-const { recordTaskHistory } = require('../utils/history');
-const { triggerAutomation } = require('../services/automation');
-const apiKeyAuth = require('../middleware/apiKeyAuth');
-const { emitEvent } = require('../services/eventBus');
-const { searchTasks, countTasks } = require('../utils/taskFilters');
+import {  body, query, param, validationResult  } from 'express-validator';
+import {  db  } from '../utils/database';
+import {  recordTaskHistory  } from '../utils/history';
+import {  triggerAutomation  } from '../services/automation';
+import apiKeyAuth = require('../middleware/apiKeyAuth');
+import {  emitEvent  } from '../services/eventBus';
+import {  searchTasks, countTasks  } from '../utils/taskFilters';
 
 /**
  * Validation rules for creating a new task.
@@ -625,7 +625,7 @@ router.delete('/:id/tags', (req, res) => {
 });
 
 // Bulk Operations
-const bulkOps = require('../utils/bulkOperations');
+import bulkOps = require('../utils/bulkOperations');
 
 /**
  * Bulk update tasks
@@ -707,7 +707,7 @@ router.post('/bulk/duplicate', async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;
 
 function normalizeOptionalInt(value, { treatUndefinedAsNull = false } = {}) {
   if (value === undefined) {

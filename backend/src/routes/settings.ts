@@ -1,7 +1,7 @@
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const { runAsync, allAsync, getAsync } = require('../utils/database');
+import {  body, validationResult  } from 'express-validator';
+import {  runAsync, allAsync, getAsync  } from '../utils/database';
 
 // Get all settings
 router.get('/', async (req, res) => {
@@ -113,4 +113,4 @@ router.post('/report-schedule', [
   }
 });
 
-module.exports = router;
+export = router;

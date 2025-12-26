@@ -4,10 +4,10 @@
  * @module utils/bulkOperations
  */
 
-const { runAsync, allAsync, db } = require('./database');
-const { recordTaskHistory } = require('./history');
-const { triggerAutomation } = require('../services/automation');
-const { emitEvent } = require('../services/eventBus');
+import {  runAsync, allAsync, db  } from './database';
+import {  recordTaskHistory  } from './history';
+import {  triggerAutomation  } from '../services/automation';
+import {  emitEvent  } from '../services/eventBus';
 
 /**
  * Update multiple tasks at once
@@ -337,7 +337,7 @@ async function bulkDuplicateTasks(taskIds, userId = null) {
   }
 }
 
-module.exports = {
+export = {
   bulkUpdateTasks,
   bulkDeleteTasks,
   bulkMoveTasks,

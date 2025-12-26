@@ -1,9 +1,9 @@
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const { runAsync, getAsync, allAsync } = require('../utils/database');
-const { recordTaskHistory } = require('../utils/history');
-const { emitEvent } = require('../services/eventBus');
-const { generateWeeklyReport, generateProductivityAnalytics } = require('../services/reporting');
+import express = require('express');
+import {  body, validationResult  } from 'express-validator';
+import {  runAsync, getAsync, allAsync  } from '../utils/database';
+import {  recordTaskHistory  } from '../utils/history';
+import {  emitEvent  } from '../services/eventBus';
+import {  generateWeeklyReport, generateProductivityAnalytics  } from '../services/reporting';
 
 const router = express.Router();
 
@@ -411,4 +411,4 @@ router.get('/patterns', async (_req, res) => {
   });
 });
 
-module.exports = router;
+export = router;

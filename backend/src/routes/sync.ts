@@ -1,8 +1,8 @@
-const express = require('express');
+import express = require('express');
 const router = express.Router();
 
-const { subscribe, getEventsSince } = require('../services/eventBus');
-const { db } = require('../utils/database');
+import {  subscribe, getEventsSince  } from '../services/eventBus';
+import {  db  } from '../utils/database';
 
 const writeEvent = (res, event) => {
   res.write(`id: ${event.id}\n`);
@@ -123,4 +123,4 @@ router.get('/stream', (req, res) => {
   });
 });
 
-module.exports = router;
+export = router;

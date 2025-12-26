@@ -4,9 +4,9 @@
  * @module routes/planner
  */
 
-const express = require('express');
-const { body, validationResult, param, query } = require('express-validator');
-const { runAsync, allAsync, getAsync } = require('../utils/database');
+import express = require('express');
+import {  body, validationResult, param, query  } from 'express-validator';
+import {  runAsync, allAsync, getAsync  } from '../utils/database';
 
 const router = express.Router();
 
@@ -505,4 +505,4 @@ router.get('/overview', [
   }
 });
 
-module.exports = router;
+export = router;

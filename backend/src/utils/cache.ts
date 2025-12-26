@@ -4,11 +4,20 @@
  * @module utils/cache
  */
 
+interface CacheItem {
+  value: any;
+  expiresAt: number;
+}
+
 /**
  * Simple in-memory cache with TTL support
  */
 class Cache {
-  constructor(defaultTTL = 300000) { // Default: 5 minutes
+  private store: Map<string, CacheItem>;
+  private timers: Map<string, NodeJS.Timeout>;
+  private defaultTTL: number;
+
+  constructor(defaultTTL: number = 300000) { // Default: 5 minutes
     this.store = new Map();
     this.timers = new Map();
     this.defaultTTL = defaultTTL;
@@ -16,15 +25,12 @@ class Cache {
 
   /**
    * Store a value in cache with optional TTL
-   * @param {string} key - Cache key
-   * @param {*} value - Value to cache
-   * @param {number} ttl - Time to live in milliseconds (uses default if not specified)
    */
-  set(key, value, ttl = null) {
+  set(key: string, value: any, ttl: number | null = null): void {
     const timeToLive = ttl !== null ? ttl : this.defaultTTL;
     // Clear existing timer if any
     if (this.timers.has(key)) {
-      clearTimeout(this.timers.get(key));
+      clearTimeout(this.timers.get(key)!);
     }
 
     // Store the value
@@ -43,10 +49,8 @@ class Cache {
 
   /**
    * Retrieve a value from cache
-   * @param {string} key - Cache key
-   * @returns {*} Cached value or null if not found or expired
    */
-  get(key) {
+  get(key: string): any {
     const item = this.store.get(key);
     
     if (!item) {
@@ -64,22 +68,19 @@ class Cache {
 
   /**
    * Check if a key exists in cache and is not expired
-   * @param {string} key - Cache key
-   * @returns {boolean} True if key exists and is valid
    */
-  has(key) {
+  has(key: string): boolean {
     return this.get(key) !== null;
   }
 
   /**
    * Delete a value from cache
-   * @param {string} key - Cache key
    */
-  delete(key) {
+  delete(key: string): void {
     this.store.delete(key);
     
     if (this.timers.has(key)) {
-      clearTimeout(this.timers.get(key));
+      clearTimeout(this.timers.get(key)!);
       this.timers.delete(key);
     }
   }
@@ -87,7 +88,7 @@ class Cache {
   /**
    * Clear all cached values
    */
-  clear() {
+  clear(): void {
     // Clear all timers
     for (const timer of this.timers.values()) {
       clearTimeout(timer);
@@ -99,9 +100,8 @@ class Cache {
 
   /**
    * Get cache statistics
-   * @returns {Object} Cache statistics
    */
-  getStats() {
+  getStats(): { size: number; keys: string[] } {
     return {
       size: this.store.size,
       keys: Array.from(this.store.keys())
@@ -132,4 +132,4 @@ class Cache {
 const defaultTTL = process.env.CACHE_TTL ? parseInt(process.env.CACHE_TTL) : 300000;
 const cache = new Cache(defaultTTL);
 
-module.exports = cache;
+export = cache;

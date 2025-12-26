@@ -4,10 +4,10 @@
  * @module services/automation
  */
 
-const { allAsync, getAsync, runAsync } = require('../utils/database');
-const { triggerWebhook } = require('./webhook');
-const { sendNotification } = require('./notifications');
-const logger = require('../utils/logger');
+import {  allAsync, getAsync, runAsync  } from '../utils/database';
+import {  triggerWebhook  } from './webhook';
+import {  sendNotification  } from './notifications';
+import logger = require('../utils/logger');
 
 /**
  * Trigger automation rules based on an event type and associated data.
@@ -256,4 +256,4 @@ const parseConfig = (configString, label) => {
   }
 };
 
-module.exports = { triggerAutomation, checkTriggerConditions, executeAutomationAction };
+export = { triggerAutomation, checkTriggerConditions, executeAutomationAction };

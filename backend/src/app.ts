@@ -5,39 +5,39 @@
  * @module app
  */
 
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const compression = require('compression');
-const mongoSanitize = require('express-mongo-sanitize');
-const swaggerUi = require('swagger-ui-express');
-const path = require('path');
+import express = require('express');
+import cors = require('cors');
+import helmet = require('helmet');
+import rateLimit = require('express-rate-limit');
+import compression = require('compression');
+import mongoSanitize = require('express-mongo-sanitize');
+import swaggerUi = require('swagger-ui-express');
+import path = require('path');
 require('dotenv').config();
 
-const swaggerSpec = require('./config/swagger');
+import swaggerSpec = require('./config/swagger');
 
-const { initDatabase } = require('./utils/database');
-const taskRoutes = require('./routes/tasks');
-const boardRoutes = require('./routes/boards');
-const userRoutes = require('./routes/users');
-const integrationRoutes = require('./routes/integrations');
-const automationRoutes = require('./routes/automation');
-const syncRoutes = require('./routes/sync');
-const aiRoutes = require('./routes/ai');
-const reportRoutes = require('./routes/reports');
-const routineRoutes = require('./routes/routines');
-const settingsRoutes = require('./routes/settings');
-const habitRoutes = require('./routes/habits');
-const plannerRoutes = require('./routes/planner');
-const fitnessRoutes = require('./routes/fitness');
-const islamicRoutes = require('./routes/islamic');
-const omniplannerRoutes = require('./routes/omniplanner');
-const chronosRoutes = require('./routes/chronos');
-const calendarRoutes = require('./routes/calendar');
-const { startScheduler } = require('./services/scheduler');
-const { requestTimer } = require('./middleware/performance');
-const logger = require('./utils/logger');
+import {  initDatabase  } from './utils/database';
+import taskRoutes = require('./routes/tasks');
+import boardRoutes = require('./routes/boards');
+import userRoutes = require('./routes/users');
+import integrationRoutes = require('./routes/integrations');
+import automationRoutes = require('./routes/automation');
+import syncRoutes = require('./routes/sync');
+import aiRoutes = require('./routes/ai');
+import reportRoutes = require('./routes/reports');
+import routineRoutes = require('./routes/routines');
+import settingsRoutes = require('./routes/settings');
+import habitRoutes = require('./routes/habits');
+import plannerRoutes = require('./routes/planner');
+import fitnessRoutes = require('./routes/fitness');
+import islamicRoutes = require('./routes/islamic');
+import omniplannerRoutes = require('./routes/omniplanner');
+import chronosRoutes = require('./routes/chronos');
+import calendarRoutes = require('./routes/calendar');
+import {  startScheduler  } from './services/scheduler';
+import {  requestTimer  } from './middleware/performance';
+import logger = require('./utils/logger');
 
 /** Express application instance */
 const app = express();
@@ -135,7 +135,7 @@ app.use('/api/omniplanner', omniplannerRoutes);
 app.use('/api/chronos', chronosRoutes);
 app.use('/api/calendar', calendarRoutes);
 
-const { errorHandler } = require('./middleware/errorHandler');
+import {  errorHandler  } from './middleware/errorHandler';
 
 /**
  * Health check endpoint for monitoring and load balancers.
@@ -178,4 +178,4 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 
-module.exports = app;
+export = app;

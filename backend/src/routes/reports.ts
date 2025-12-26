@@ -1,4 +1,4 @@
-const express = require('express');
+import express = require('express');
 const router = express.Router();
 const { 
   generateWeeklyReport, 
@@ -81,4 +81,4 @@ router.post('/custom/send-to-n8n', async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

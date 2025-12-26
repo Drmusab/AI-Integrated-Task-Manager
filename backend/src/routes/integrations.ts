@@ -1,8 +1,8 @@
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const { db } = require('../utils/database');
-const axios = require('axios');
+import {  body, validationResult  } from 'express-validator';
+import {  db  } from '../utils/database';
+import axios = require('axios');
 
 // Get all integrations
 router.get('/', (req, res) => {
@@ -254,4 +254,4 @@ router.post('/trigger-n8n-webhook', async (req, res) => {
   );
 });
 
-module.exports = router;
+export = router;

@@ -4,8 +4,8 @@
  * @module services/reporting
  */
 
-const { allAsync, getAsync } = require('../utils/database');
-const { triggerWebhook } = require('./webhook');
+import {  allAsync, getAsync  } from '../utils/database';
+import {  triggerWebhook  } from './webhook';
 
 /**
  * Calculates completion rate as a percentage string.
@@ -379,7 +379,7 @@ const generateProductivityAnalytics = async (days = 30) => {
   }
 };
 
-module.exports = {
+export = {
   generateWeeklyReport,
   generateCustomReport,
   sendReportToN8n,

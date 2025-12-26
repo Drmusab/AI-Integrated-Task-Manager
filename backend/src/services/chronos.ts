@@ -4,7 +4,7 @@
  * @module services/chronos
  */
 
-const { allAsync, runAsync, getAsync } = require('../utils/database');
+import {  allAsync, runAsync, getAsync  } from '../utils/database';
 
 /**
  * Check for time block conflicts
@@ -325,7 +325,7 @@ function addDays(dateStr, days) {
   return date.toISOString().split('T')[0];
 }
 
-module.exports = {
+export = {
   checkConflicts,
   suggestOptimalTime,
   calculateBufferTime,

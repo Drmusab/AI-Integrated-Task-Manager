@@ -4,7 +4,7 @@
  * @module utils/taskFilters
  */
 
-const { allAsync } = require('./database');
+import {  allAsync  } from './database';
 
 /**
  * Build SQL WHERE clause from filter options
@@ -291,7 +291,7 @@ async function countTasks(filters = {}) {
   return result[0]?.count || 0;
 }
 
-module.exports = {
+export = {
   searchTasks,
   countTasks,
   buildWhereClause,

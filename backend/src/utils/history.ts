@@ -4,7 +4,7 @@
  * @module utils/history
  */
 
-const { db } = require('./database');
+import {  db  } from './database';
 
 /**
  * Records a task history event in the database for audit trail purposes.
@@ -34,4 +34,4 @@ const recordTaskHistory = (taskId, action, oldValue, newValue, userId) => {
   );
 };
 
-module.exports = { recordTaskHistory };
+export = { recordTaskHistory };

@@ -4,7 +4,7 @@
  * @module middleware/jwtAuth
  */
 
-const jwt = require('jsonwebtoken');
+import jwt = require('jsonwebtoken');
 
 /**
  * JWT secret from environment variables with a fallback for development.
@@ -80,7 +80,7 @@ const optionalAuth = (req, res, next) => {
   next();
 };
 
-module.exports = {
+export = {
   authenticateToken,
   optionalAuth
 };

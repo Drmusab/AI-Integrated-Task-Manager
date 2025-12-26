@@ -1,6 +1,6 @@
-const express = require('express');
-const { body, validationResult, param } = require('express-validator');
-const { runAsync, allAsync, getAsync } = require('../utils/database');
+import express = require('express');
+import {  body, validationResult, param  } from 'express-validator';
+import {  runAsync, allAsync, getAsync  } from '../utils/database';
 
 const router = express.Router();
 
@@ -197,4 +197,4 @@ const safeParseRule = (ruleString) => {
   }
 };
 
-module.exports = router;
+export = router;

@@ -4,9 +4,9 @@
  * @module routes/habits
  */
 
-const express = require('express');
-const { body, validationResult, param, query } = require('express-validator');
-const { runAsync, allAsync, getAsync } = require('../utils/database');
+import express = require('express');
+import {  body, validationResult, param, query  } from 'express-validator';
+import {  runAsync, allAsync, getAsync  } from '../utils/database';
 
 const router = express.Router();
 
@@ -737,4 +737,4 @@ router.put('/reorder', [body('habitIds').isArray()], async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

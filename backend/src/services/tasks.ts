@@ -5,8 +5,8 @@
  * @module services/tasks
  */
 
-const { getAsync, runAsync, allAsync } = require('../utils/database');
-const { recordTaskHistory } = require('../utils/history');
+import {  getAsync, runAsync, allAsync  } from '../utils/database';
+import {  recordTaskHistory  } from '../utils/history';
 
 /**
  * Checks if a value is a positive integer.
@@ -178,4 +178,4 @@ const createRecurringTask = async (originalTask, recurringRule) => {
   return taskId;
 };
 
-module.exports = { createRecurringTask };
+export = { createRecurringTask };

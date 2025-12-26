@@ -4,9 +4,9 @@
  * @module services/webhook
  */
 
-const axios = require('axios');
-const { getAsync } = require('../utils/database');
-const logger = require('../utils/logger');
+import axios = require('axios');
+import {  getAsync  } from '../utils/database';
+import logger = require('../utils/logger');
 
 /**
  * Default timeout for webhook requests in milliseconds.
@@ -120,4 +120,4 @@ const isValidUrl = (urlString) => {
   }
 };
 
-module.exports = { triggerWebhook };
+export = { triggerWebhook };

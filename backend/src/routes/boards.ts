@@ -1,8 +1,8 @@
-const express = require('express');
+import express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const { db } = require('../utils/database');
-const { emitEvent, toNumericBoolean } = require('../services/eventBus');
+import {  body, validationResult  } from 'express-validator';
+import {  db  } from '../utils/database';
+import {  emitEvent, toNumericBoolean  } from '../services/eventBus';
 
 // Get all boards
 router.get('/', (req, res) => {
@@ -517,4 +517,4 @@ router.post('/:id/duplicate', (req, res) => {
   });
 });
 
-module.exports = router;
+export = router;
