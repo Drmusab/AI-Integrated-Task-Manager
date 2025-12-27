@@ -132,4 +132,4 @@ class Cache {
 const defaultTTL = process.env.CACHE_TTL ? parseInt(process.env.CACHE_TTL) : 300000;
 const cache = new Cache(defaultTTL);
 
-export = cache;
+export default cache;
