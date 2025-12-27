@@ -19,6 +19,11 @@ import Fitness from './pages/Fitness';
 import Islamic from './pages/Islamic';
 import OmniPlanner from './pages/OmniPlanner';
 import Chronos from './pages/Chronos';
+import ThoughtOrganizer from './pages/ThoughtOrganizer';
+import NotesHub from './pages/NotesHub';
+import IdeaTracker from './pages/IdeaTracker';
+import WritingHub from './pages/WritingHub';
+import Utilities from './pages/Utilities';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
@@ -41,6 +46,11 @@ function AppRoutes() {
           <Route path="/fitness" element={isAuthenticated ? <Fitness /> : <Navigate to="/login" />} />
           <Route path="/islamic" element={isAuthenticated ? <Islamic /> : <Navigate to="/login" />} />
           <Route path="/chronos" element={isAuthenticated ? <Chronos /> : <Navigate to="/login" />} />
+          <Route path="/thoughts" element={isAuthenticated ? <ThoughtOrganizer /> : <Navigate to="/login" />} />
+          <Route path="/notes" element={isAuthenticated ? <NotesHub /> : <Navigate to="/login" />} />
+          <Route path="/ideas" element={isAuthenticated ? <IdeaTracker /> : <Navigate to="/login" />} />
+          <Route path="/writing" element={isAuthenticated ? <WritingHub /> : <Navigate to="/login" />} />
+          <Route path="/utilities" element={isAuthenticated ? <Utilities /> : <Navigate to="/login" />} />
           <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" />} />
           <Route path="/analytics" element={isAuthenticated ? <Analytics /> : <Navigate to="/login" />} />
           <Route path="/calendar" element={isAuthenticated ? <Calendar /> : <Navigate to="/login" />} />

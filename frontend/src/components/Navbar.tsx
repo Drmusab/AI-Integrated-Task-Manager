@@ -28,7 +28,12 @@ import {
   ViewKanban,
   Timer,
   Brightness4,
-  Brightness7
+  Brightness7,
+  Psychology,
+  Note,
+  Lightbulb,
+  Edit,
+  Build,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -70,12 +75,17 @@ const Navbar: React.FC = () => {
     { path: '/omniplanner', icon: <ViewKanban />, label: 'OmniPlanner' },
     { path: '/planner', icon: <Today />, label: 'المخطط اليومي' },
     { path: '/boards', icon: <Dashboard />, label: 'اللوحات' },
+    { path: '/thoughts', icon: <Psychology />, label: 'Thoughts' },
+    { path: '/notes', icon: <Note />, label: 'Notes' },
+    { path: '/ideas', icon: <Lightbulb />, label: 'Ideas' },
+    { path: '/writing', icon: <Edit />, label: 'Writing' },
     { path: '/calendar', icon: <Event />, label: 'التقويم' },
     { path: '/routines', icon: <Repeat />, label: 'الجداول الدورية' },
     { path: '/habits', icon: <CheckBox />, label: 'العادات' },
     { path: '/fitness', icon: <FitnessCenter />, label: 'اللياقة' },
     { path: '/islamic', icon: <Mosque />, label: 'الفلاح' },
     { path: '/chronos', icon: <Timer />, label: 'Chronos' },
+    { path: '/utilities', icon: <Build />, label: 'Utilities' },
     { path: '/analytics', icon: <Analytics />, label: 'التحليلات' },
     { path: '/settings', icon: <Settings />, label: 'الإعدادات' },
   ];
