@@ -15,7 +15,7 @@ export class VaultBridgeService {
   /**
    * Auto-save a thought to vault when created
    */
-  static async syncThoughtToVault(thought: any): Promise<string | null> {
+  static async syncThoughtToVault(thought: { id: number; content?: string; category: string; is_processed?: boolean; session_id?: string; created_by: number }): Promise<string | null> {
     try {
       const category = this.mapThoughtCategoryToPARA(thought.category);
       
@@ -45,7 +45,7 @@ export class VaultBridgeService {
   /**
    * Auto-save an idea to vault when created
    */
-  static async syncIdeaToVault(idea: any): Promise<string | null> {
+  static async syncIdeaToVault(idea: { id: number; title: string; description?: string; status: string; priority?: string; category?: string; tags?: string; created_by: number }): Promise<string | null> {
     try {
       const category = this.mapIdeaStatusToPARA(idea.status);
       
@@ -75,7 +75,7 @@ export class VaultBridgeService {
   /**
    * Auto-save an article to vault when created
    */
-  static async syncArticleToVault(article: any): Promise<string | null> {
+  static async syncArticleToVault(article: { id: number; title: string; content?: string; status: string; type?: string; word_count?: number; target_word_count?: number; excerpt?: string; tags?: string; created_by: number }): Promise<string | null> {
     try {
       const category = this.mapArticleStatusToPARA(article.status);
       
@@ -107,7 +107,7 @@ export class VaultBridgeService {
   /**
    * Auto-save a note to vault when created
    */
-  static async syncNoteToVault(note: any): Promise<string | null> {
+  static async syncNoteToVault(note: { id: string; title: string; content_markdown?: string; folder_path?: string; frontmatter?: string; created_by: number }): Promise<string | null> {
     try {
       const vaultItem = await KnowledgeVaultService.createVaultItem({
         type: VaultItemType.NOTE,
@@ -134,7 +134,7 @@ export class VaultBridgeService {
   /**
    * Auto-save a quote to vault when created
    */
-  static async syncQuoteToVault(quote: any): Promise<string | null> {
+  static async syncQuoteToVault(quote: { id: number; content: string; author?: string; source?: string; category?: string; is_favorite?: boolean; created_by: number }): Promise<string | null> {
     try {
       const vaultItem = await KnowledgeVaultService.createVaultItem({
         type: VaultItemType.QUOTE,
@@ -162,7 +162,7 @@ export class VaultBridgeService {
   /**
    * Auto-save a word to vault when created
    */
-  static async syncWordToVault(word: any): Promise<string | null> {
+  static async syncWordToVault(word: { id: number; word: string; definition?: string; pronunciation?: string; part_of_speech?: string; example_sentence?: string; origin?: string; synonyms?: string; antonyms?: string; category?: string; mastery_level?: number; created_by: number }): Promise<string | null> {
     try {
       const vaultItem = await KnowledgeVaultService.createVaultItem({
         type: VaultItemType.WORD,

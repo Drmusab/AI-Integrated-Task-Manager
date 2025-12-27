@@ -198,7 +198,11 @@ export class KnowledgeVaultService {
       ]
     );
 
-    return this.getVaultItem(id) as Promise<VaultItem>;
+    const item = await this.getVaultItem(id);
+    if (!item) {
+      throw new Error('Failed to create vault item');
+    }
+    return item;
   }
 
   /**
@@ -395,10 +399,14 @@ export class KnowledgeVaultService {
       const thoughts = await allAsync('SELECT * FROM thoughts WHERE created_by = ?', [userId]);
       for (const thought of thoughts) {
         try {
+          const contentPreview = thought.content && typeof thought.content === 'string' 
+            ? thought.content.substring(0, 100) 
+            : 'Untitled Thought';
+
           await this.createVaultItem({
             type: VaultItemType.THOUGHT,
-            title: thought.content.substring(0, 100) || 'Untitled Thought',
-            content: thought.content,
+            title: contentPreview,
+            content: thought.content || '',
             para_category: thought.category === 'actions' ? PARACategory.PROJECT : PARACategory.RESOURCE,
             tags: [thought.category],
             metadata: {
@@ -410,8 +418,9 @@ export class KnowledgeVaultService {
             source_id: thought.id.toString(),
           });
           migrated++;
-        } catch (error: any) {
-          errors.push(`Failed to migrate thought ${thought.id}: ${error.message}`);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error);
+          errors.push(`Failed to migrate thought ${thought.id}: ${errorMessage}`);
         }
       }
 
@@ -435,8 +444,8 @@ export class KnowledgeVaultService {
             source_id: idea.id.toString(),
           });
           migrated++;
-        } catch (error: any) {
-          errors.push(`Failed to migrate idea ${idea.id}: ${error.message}`);
+        } catch (error: unknown) {
+          errors.push(`Failed to migrate idea ${idea.id}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -461,8 +470,8 @@ export class KnowledgeVaultService {
             source_id: article.id.toString(),
           });
           migrated++;
-        } catch (error: any) {
-          errors.push(`Failed to migrate article ${article.id}: ${error.message}`);
+        } catch (error: unknown) {
+          errors.push(`Failed to migrate article ${article.id}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -486,8 +495,8 @@ export class KnowledgeVaultService {
             source_id: quote.id.toString(),
           });
           migrated++;
-        } catch (error: any) {
-          errors.push(`Failed to migrate quote ${quote.id}: ${error.message}`);
+        } catch (error: unknown) {
+          errors.push(`Failed to migrate quote ${quote.id}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -514,8 +523,8 @@ export class KnowledgeVaultService {
             source_id: word.id.toString(),
           });
           migrated++;
-        } catch (error: any) {
-          errors.push(`Failed to migrate word ${word.id}: ${error.message}`);
+        } catch (error: unknown) {
+          errors.push(`Failed to migrate word ${word.id}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -538,13 +547,13 @@ export class KnowledgeVaultService {
             source_id: note.id,
           });
           migrated++;
-        } catch (error: any) {
-          errors.push(`Failed to migrate note ${note.id}: ${error.message}`);
+        } catch (error: unknown) {
+          errors.push(`Failed to migrate note ${note.id}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
-    } catch (error: any) {
-      errors.push(`Migration error: ${error.message}`);
+    } catch (error: unknown) {
+      errors.push(`Migration error: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     return { migrated, errors };

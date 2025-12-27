@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -196,6 +195,8 @@ const KnowledgeVault: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   // Form
   const [formData, setFormData] = useState({
@@ -270,13 +271,18 @@ const KnowledgeVault: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) {
-      return;
-    }
+    setItemToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
 
     try {
-      await deleteVaultItem(id);
+      await deleteVaultItem(itemToDelete);
       showSuccess('Item deleted successfully');
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
       loadData();
     } catch (error) {
       showError('Failed to delete item');
@@ -694,6 +700,27 @@ const KnowledgeVault: React.FC = () => {
           <Button onClick={() => setMigrateDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleMigrate} variant="contained" color="primary">
             Migrate
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete Item</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Are you sure you want to delete this item? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={confirmDelete} variant="contained" color="error">
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
