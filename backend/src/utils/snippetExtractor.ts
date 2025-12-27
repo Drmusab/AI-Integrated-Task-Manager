@@ -63,16 +63,33 @@ export function extractWikilinkSnippet(
   const pattern = `[[${linkText}]]`;
   const position = markdown.indexOf(pattern);
   
-  if (position === -1) {
-    // If exact match not found, try to find just the link text
-    const altPosition = markdown.indexOf(linkText);
-    if (altPosition === -1) {
-      return fallbackTitle;
-    }
-    return extractSnippet(markdown, altPosition, linkText.length);
+  if (position !== -1) {
+    return extractSnippet(markdown, position, pattern.length);
   }
   
-  return extractSnippet(markdown, position, pattern.length);
+  // Try to find the link text with heading or block reference
+  const headingPattern = `[[${linkText}#`;
+  const headingPos = markdown.indexOf(headingPattern);
+  if (headingPos !== -1) {
+    // Find the end of this wikilink
+    const endPos = markdown.indexOf(']]', headingPos);
+    if (endPos !== -1) {
+      return extractSnippet(markdown, headingPos, endPos - headingPos + 2);
+    }
+  }
+  
+  const blockPattern = `[[${linkText}^`;
+  const blockPos = markdown.indexOf(blockPattern);
+  if (blockPos !== -1) {
+    // Find the end of this wikilink
+    const endPos = markdown.indexOf(']]', blockPos);
+    if (endPos !== -1) {
+      return extractSnippet(markdown, blockPos, endPos - blockPos + 2);
+    }
+  }
+  
+  // If we can't find the exact wikilink pattern, use fallback
+  return fallbackTitle;
 }
 
 /**

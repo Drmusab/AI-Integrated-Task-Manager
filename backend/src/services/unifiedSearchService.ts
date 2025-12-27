@@ -199,13 +199,20 @@ export class UnifiedSearchService {
         }
       } else if (result.type === 'task') {
         // Get related notes
+        const taskId = parseInt(result.id, 10);
+        
+        // Skip if ID is not a valid number
+        if (isNaN(taskId)) {
+          continue;
+        }
+        
         const relatedNoteRows = await allAsync(
           `SELECT n.id, n.title
            FROM obsidian_task_note_relations tnr
            JOIN obsidian_notes n ON tnr.note_id = n.id
            WHERE tnr.task_id = ?
            LIMIT 5`,
-          [parseInt(result.id, 10)]
+          [taskId]
         );
         
         if (relatedNoteRows.length > 0) {
