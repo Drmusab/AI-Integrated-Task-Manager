@@ -28,12 +28,17 @@ import {
   NoteWithTasks,
   NoteFullContext,
   NoteFrontmatter,
+  BacklinkItem,
+  NoteWithBacklinkSnippets,
 } from '../types/notes';
 import {
   extractWikilinks,
   determineLinkType,
   normalizeNoteTitle,
 } from '../utils/markdownLinkParser';
+import {
+  extractWikilinkSnippet,
+} from '../utils/snippetExtractor';
 
 /**
  * Note Service Class
@@ -298,6 +303,53 @@ export class NoteService {
   }
   
   /**
+   * Get backlinks with context snippets (Phase C)
+   * 
+   * This method provides an Obsidian-like feeling by showing where each backlink appears.
+   * - Uses indexed lookup by targetNoteId (O(n) over backlinks only)
+   * - Extracts ~40-80 char snippets without re-parsing markdown
+   * - Falls back to note title if snippet extraction fails
+   * 
+   * @param noteId - Note ID
+   * @returns Array of backlinks with context snippets
+   */
+  async getBacklinksWithSnippets(noteId: string): Promise<BacklinkItem[]> {
+    // Get target note to know what title to look for in snippets
+    const targetNote = await this.getNote(noteId);
+    if (!targetNote) {
+      return [];
+    }
+    
+    // Query backlinks with source note content (indexed lookup)
+    const rows = await allAsync(
+      `SELECT nl.link_type, nl.source_note_id, n.id, n.title, n.content_markdown
+       FROM obsidian_note_links nl
+       JOIN obsidian_notes n ON nl.source_note_id = n.id
+       WHERE nl.target_note_id = ?
+       ORDER BY n.title`,
+      [noteId]
+    );
+    
+    // Build backlink items with snippets
+    return rows.map((row: any) => {
+      // Extract snippet from the source note's markdown
+      const snippet = extractWikilinkSnippet(
+        row.content_markdown || '',
+        targetNote.title,
+        row.title // Fallback to source note title
+      );
+      
+      return {
+        sourceNoteId: row.id,
+        sourceNoteTitle: row.title,
+        linkType: row.link_type as NoteLinkType,
+        snippet,
+        position: undefined, // Could be enhanced with position tracking
+      };
+    });
+  }
+  
+  /**
    * Get outgoing links for a note
    * 
    * @param noteId - Note ID
@@ -349,6 +401,28 @@ export class NoteService {
     return {
       ...note,
       links,
+    };
+  }
+  
+  /**
+   * Get note with backlinks including snippets (Phase C)
+   * 
+   * Provides the Obsidian-like experience of seeing contextual backlinks.
+   * 
+   * @param noteId - Note ID
+   * @returns Note with backlink snippets or null
+   */
+  async getNoteWithBacklinkSnippets(noteId: string): Promise<NoteWithBacklinkSnippets | null> {
+    const note = await this.getNote(noteId);
+    if (!note) {
+      return null;
+    }
+    
+    const backlinks = await this.getBacklinksWithSnippets(noteId);
+    
+    return {
+      ...note,
+      backlinks,
     };
   }
   

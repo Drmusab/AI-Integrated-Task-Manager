@@ -219,6 +219,26 @@ export interface CreateTaskNoteRelationParams {
 // ===== Query Results =====
 
 /**
+ * Backlink item with context snippet (Phase C)
+ */
+export interface BacklinkItem {
+  /** ID of the source note */
+  sourceNoteId: string;
+  
+  /** Title of the source note */
+  sourceNoteTitle: string;
+  
+  /** Type of link */
+  linkType: NoteLinkType;
+  
+  /** Context snippet showing where the link appears (~40-80 chars around link) */
+  snippet: string;
+  
+  /** Optional position of the link in the source note */
+  position?: number;
+}
+
+/**
  * Note with backlinks (incoming links)
  */
 export interface NoteWithBacklinks extends Note {
@@ -272,6 +292,14 @@ export interface NoteFullContext extends Note {
   }>;
 }
 
+/**
+ * Note with backlinks including context snippets (Phase C)
+ */
+export interface NoteWithBacklinkSnippets extends Note {
+  /** Array of backlinks with context snippets */
+  backlinks: BacklinkItem[];
+}
+
 // ===== Link Resolution =====
 
 /**
@@ -305,6 +333,51 @@ export interface MarkdownLinkExtractionResult {
   
   /** Count of unresolved links */
   unresolvedCount: number;
+}
+
+// ===== Unified Search (Phase D) =====
+
+/**
+ * Unified search result item (for notes and tasks)
+ */
+export interface SearchResult {
+  /** Unique identifier */
+  id: string;
+  
+  /** Type of result */
+  type: 'note' | 'task';
+  
+  /** Title of the note or task */
+  title: string;
+  
+  /** Context snippet showing where the match occurs */
+  snippet: string;
+  
+  /** Optional related entities */
+  related?: {
+    notes?: string[];
+    tasks?: string[];
+  };
+  
+  /** Search relevance score (higher is better) */
+  score?: number;
+}
+
+/**
+ * Options for unified search
+ */
+export interface UnifiedSearchOptions {
+  /** Maximum number of results to return */
+  limit?: number;
+  
+  /** Offset for pagination */
+  offset?: number;
+  
+  /** Filter to specific types */
+  types?: Array<'note' | 'task'>;
+  
+  /** Include related entities in results */
+  includeRelated?: boolean;
 }
 
 // ===== Database Row Types =====
