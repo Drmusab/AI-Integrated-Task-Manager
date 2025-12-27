@@ -112,7 +112,7 @@ export const getZettelkastenGraph = () => {
 export type TaskNoteRelationType = 'reference' | 'spec' | 'meeting' | 'evidence';
 
 export const getLinkedTasks = (noteId: string) => {
-  return api.get(`/notes/${noteId}/tasks`);
+  return api.get(`/api/notes/${noteId}/tasks`);
 };
 
 export const getLinkedNotes = (taskId: string) => {
@@ -135,12 +135,12 @@ export const createNoteFromTask = (taskId: string) => {
 
 export const getDailyNote = (date?: string) => {
   const targetDate = date || new Date().toISOString().split('T')[0];
-  return api.get(`/notes/daily/${targetDate}`);
+  return api.get(`/api/notes/daily/${targetDate}`);
 };
 
 export const createDailyNote = (date?: string) => {
   const targetDate = date || new Date().toISOString().split('T')[0];
-  return api.post('/notes/daily', { date: targetDate });
+  return api.post('/api/notes/daily', { date: targetDate });
 };
 
 const noteService = {
