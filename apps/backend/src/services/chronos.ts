@@ -7,6 +7,75 @@
 import {  allAsync, runAsync, getAsync  } from '../utils/database';
 
 /**
+ * Energy requirement level
+ */
+type EnergyLevel = 'high' | 'medium' | 'low';
+
+/**
+ * Time block category
+ */
+type TimeBlockCategory = 'meeting' | 'deep_work' | 'admin' | 'break' | 'general';
+
+/**
+ * Time block from database
+ */
+interface TimeBlock {
+  id: number;
+  created_by: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  category: string;
+  title?: string;
+  description?: string;
+}
+
+/**
+ * Chronos settings from database
+ */
+interface ChronosSettings {
+  user_id: number;
+  buffer_time_enabled: number;
+  default_buffer_minutes: number;
+  work_hours_start: string;
+  work_hours_end: string;
+  deep_work_duration: number;
+  short_break_duration: number;
+  long_break_duration: number;
+}
+
+/**
+ * Energy pattern from analytics query
+ */
+interface EnergyPattern {
+  hour: number;
+  avg_energy: number;
+  avg_focus: number;
+  avg_productivity: number;
+  session_count: number;
+}
+
+/**
+ * Default time suggestions by energy level
+ */
+const defaultTimeSuggestions: Record<EnergyLevel, { hour: number; reason: string }> = {
+  high: { hour: 9, reason: 'Morning typically offers peak energy' },
+  medium: { hour: 14, reason: 'Afternoon suitable for moderate tasks' },
+  low: { hour: 16, reason: 'Late afternoon for lighter tasks' }
+};
+
+/**
+ * Category buffer multipliers
+ */
+const categoryMultipliers: Record<TimeBlockCategory, number> = {
+  meeting: 1.5,
+  deep_work: 1.2,
+  admin: 0.8,
+  break: 0,
+  general: 1.0
+};
+
+/**
  * Check for time block conflicts
  * @param {number} userId - User ID
  * @param {string} date - Date (YYYY-MM-DD)
@@ -15,7 +84,13 @@ import {  allAsync, runAsync, getAsync  } from '../utils/database';
  * @param {number} excludeBlockId - Block ID to exclude from conflict check (for updates)
  * @returns {Promise<Array>} Array of conflicting blocks
  */
-async function checkConflicts(userId, date, startTime, endTime, excludeBlockId = null) {
+async function checkConflicts(
+  userId: number,
+  date: string,
+  startTime: string,
+  endTime: string,
+  excludeBlockId: number | null = null
+): Promise<TimeBlock[]> {
   let query = `
     SELECT * FROM chronos_time_blocks
     WHERE created_by = ? AND date = ?
@@ -23,14 +98,14 @@ async function checkConflicts(userId, date, startTime, endTime, excludeBlockId =
     OR (start_time < ? AND end_time > ?)
     OR (start_time >= ? AND end_time <= ?))
   `;
-  const params = [userId, date, endTime, startTime, endTime, startTime, startTime, endTime];
+  const params: (string | number)[] = [userId, date, endTime, startTime, endTime, startTime, startTime, endTime];
 
   if (excludeBlockId) {
     query += ' AND id != ?';
     params.push(excludeBlockId);
   }
 
-  return await allAsync(query, params);
+  return await allAsync<TimeBlock>(query, params);
 }
 
 /**
@@ -40,9 +115,13 @@ async function checkConflicts(userId, date, startTime, endTime, excludeBlockId =
  * @param {string} energyRequired - Energy level required
  * @returns {Promise<Object>} Suggested time slot
  */
-async function suggestOptimalTime(userId, category, energyRequired = 'medium') {
+async function suggestOptimalTime(
+  userId: number,
+  category: string,
+  energyRequired: EnergyLevel = 'medium'
+): Promise<{ hour: number; reason: string; avgProductivity?: number; avgFocus?: number; sampleSize?: number }> {
   // Analyze historical performance by hour
-  const energyPatterns = await allAsync(`
+  const energyPatterns = await allAsync<EnergyPattern>(`
     SELECT
       CAST(strftime('%H', start_time) AS INTEGER) as hour,
       AVG(energy_level) as avg_energy,
@@ -59,12 +138,7 @@ async function suggestOptimalTime(userId, category, energyRequired = 'medium') {
 
   if (energyPatterns.length === 0) {
     // Default suggestions if no historical data
-    const defaults = {
-      high: { hour: 9, reason: 'Morning typically offers peak energy' },
-      medium: { hour: 14, reason: 'Afternoon suitable for moderate tasks' },
-      low: { hour: 16, reason: 'Late afternoon for lighter tasks' }
-    };
-    return defaults[energyRequired] || defaults.medium;
+    return defaultTimeSuggestions[energyRequired] || defaultTimeSuggestions.medium;
   }
 
   return {
@@ -82,8 +156,11 @@ async function suggestOptimalTime(userId, category, energyRequired = 'medium') {
  * @param {string} category - Task category
  * @returns {Promise<Object>} Buffer time in minutes
  */
-async function calculateBufferTime(userId, category) {
-  const settings = await getAsync(
+async function calculateBufferTime(
+  userId: number,
+  category: string
+): Promise<{ before: number; after: number }> {
+  const settings = await getAsync<ChronosSettings>(
     'SELECT buffer_time_enabled, default_buffer_minutes FROM chronos_settings WHERE user_id = ?',
     [userId]
   );
@@ -95,18 +172,29 @@ async function calculateBufferTime(userId, category) {
   const baseBuffer = settings.default_buffer_minutes || 5;
 
   // Adjust buffer based on category
-  const categoryMultipliers = {
-    meeting: 1.5,
-    deep_work: 1.2,
-    admin: 0.8,
-    break: 0,
-    general: 1.0
-  };
-
-  const multiplier = categoryMultipliers[category] || 1.0;
+  const multiplier = categoryMultipliers[category as TimeBlockCategory] || 1.0;
   const bufferTime = Math.round(baseBuffer * multiplier);
 
   return { before: bufferTime, after: bufferTime };
+}
+
+/**
+ * Available time slot
+ */
+interface AvailableSlot {
+  start_time: string;
+  end_time: string;
+  duration_available: number;
+}
+
+/**
+ * Task details for auto-scheduling
+ */
+interface TaskDetails {
+  duration: number;
+  category: string;
+  energy_required?: EnergyLevel;
+  title?: string;
 }
 
 /**
@@ -116,9 +204,13 @@ async function calculateBufferTime(userId, category) {
  * @param {number} duration - Required duration in minutes
  * @returns {Promise<Array>} Available time slots
  */
-async function findAvailableSlots(userId, date, duration) {
+async function findAvailableSlots(
+  userId: number,
+  date: string,
+  duration: number
+): Promise<AvailableSlot[]> {
   // Get user's work hours
-  const settings = await getAsync(
+  const settings = await getAsync<ChronosSettings>(
     'SELECT work_hours_start, work_hours_end FROM chronos_settings WHERE user_id = ?',
     [userId]
   );
@@ -127,7 +219,7 @@ async function findAvailableSlots(userId, date, duration) {
   const workEnd = settings?.work_hours_end || '17:00';
 
   // Get existing blocks for the date
-  const existingBlocks = await allAsync(`
+  const existingBlocks = await allAsync<TimeBlock>(`
     SELECT start_time, end_time FROM chronos_time_blocks
     WHERE created_by = ? AND date = ?
     ORDER BY start_time
@@ -170,7 +262,19 @@ async function findAvailableSlots(userId, date, duration) {
  * @param {string} preferredDate - Preferred date (optional)
  * @returns {Promise<Object>} Suggested time block
  */
-async function autoScheduleTask(userId, taskDetails, preferredDate = null) {
+async function autoScheduleTask(
+  userId: number,
+  taskDetails: TaskDetails,
+  preferredDate: string | null = null
+): Promise<{
+  date: string;
+  start_time: string;
+  end_time: string;
+  title?: string;
+  category: string;
+  energy_required?: EnergyLevel;
+  suggested_reason: string;
+} | null> {
   const { duration, category, energy_required, title } = taskDetails;
 
   // Get optimal time suggestion
@@ -221,37 +325,62 @@ async function autoScheduleTask(userId, taskDetails, preferredDate = null) {
 }
 
 /**
+ * Time session from database
+ */
+interface TimeSession {
+  id: number;
+  created_by: number;
+  start_time: string;
+  end_time?: string;
+  total_duration: number;
+  category: string;
+  focus_quality?: number;
+  productivity_rating?: number;
+  energy_level?: number;
+  interruptions?: number;
+  status: string;
+}
+
+/**
+ * Insight message
+ */
+interface InsightMessage {
+  type: 'success' | 'warning' | 'info';
+  message: string;
+}
+
+/**
  * Generate daily time intelligence insights
  * @param {number} userId - User ID
  * @param {string} date - Date (YYYY-MM-DD)
  * @returns {Promise<Object>} Daily insights
  */
-async function generateDailyInsights(userId, date) {
-  const blocks = await allAsync(
+async function generateDailyInsights(userId: number, date: string) {
+  const blocks = await allAsync<TimeBlock>(
     'SELECT * FROM chronos_time_blocks WHERE created_by = ? AND date = ? ORDER BY start_time',
     [userId, date]
   );
 
-  const sessions = await allAsync(`
+  const sessions = await allAsync<TimeSession>(`
     SELECT * FROM chronos_time_sessions
     WHERE created_by = ? AND DATE(start_time) = ? AND status = 'completed'
   `, [userId, date]);
 
-  const totalPlannedMinutes = blocks.reduce((sum, block) => {
+  const totalPlannedMinutes = blocks.reduce((sum: number, block) => {
     const minutes = getMinutesDifference(block.start_time, block.end_time);
     return sum + minutes;
   }, 0);
 
-  const totalActualMinutes = sessions.reduce((sum, session) => {
+  const totalActualMinutes = sessions.reduce((sum: number, session) => {
     return sum + (session.total_duration || 0);
   }, 0);
 
   const avgFocus = sessions.length > 0
-    ? sessions.reduce((sum, s) => sum + (s.focus_quality || 0), 0) / sessions.length
+    ? sessions.reduce((sum: number, s) => sum + (s.focus_quality || 0), 0) / sessions.length
     : 0;
 
   const avgProductivity = sessions.length > 0
-    ? sessions.reduce((sum, s) => sum + (s.productivity_rating || 0), 0) / sessions.length
+    ? sessions.reduce((sum: number, s) => sum + (s.productivity_rating || 0), 0) / sessions.length
     : 0;
 
   return {
@@ -271,8 +400,13 @@ async function generateDailyInsights(userId, date) {
 /**
  * Generate insight messages based on data
  */
-function generateInsightMessages(blocks, sessions, avgFocus, avgProductivity) {
-  const insights = [];
+function generateInsightMessages(
+  blocks: TimeBlock[],
+  sessions: TimeSession[],
+  avgFocus: number,
+  avgProductivity: number
+): InsightMessage[] {
+  const insights: InsightMessage[] = [];
 
   if (sessions.length === 0 && blocks.length > 0) {
     insights.push({ type: 'warning', message: 'You had time blocks planned but no sessions tracked' });
@@ -288,7 +422,7 @@ function generateInsightMessages(blocks, sessions, avgFocus, avgProductivity) {
     insights.push({ type: 'success', message: 'High productivity achieved today!' });
   }
 
-  const totalInterruptions = sessions.reduce((sum, s) => sum + (s.interruptions || 0), 0);
+  const totalInterruptions = sessions.reduce((sum: number, s) => sum + (s.interruptions || 0), 0);
   if (totalInterruptions > 10) {
     insights.push({ type: 'warning', message: `${totalInterruptions} interruptions recorded. Try to minimize distractions.` });
   }
@@ -299,7 +433,7 @@ function generateInsightMessages(blocks, sessions, avgFocus, avgProductivity) {
 /**
  * Utility: Calculate minutes difference between two time strings
  */
-function getMinutesDifference(startTime, endTime) {
+function getMinutesDifference(startTime: string, endTime: string): number {
   const [startHour, startMin] = startTime.split(':').map(Number);
   const [endHour, endMin] = endTime.split(':').map(Number);
   return (endHour * 60 + endMin) - (startHour * 60 + startMin);
@@ -308,7 +442,7 @@ function getMinutesDifference(startTime, endTime) {
 /**
  * Utility: Add minutes to a time string
  */
-function addMinutes(timeStr, minutes) {
+function addMinutes(timeStr: string, minutes: number): string {
   const [hour, min] = timeStr.split(':').map(Number);
   const totalMinutes = hour * 60 + min + minutes;
   const newHour = Math.floor(totalMinutes / 60) % 24;
@@ -319,7 +453,7 @@ function addMinutes(timeStr, minutes) {
 /**
  * Utility: Add days to a date string
  */
-function addDays(dateStr, days) {
+function addDays(dateStr: string, days: number): string {
   const date = new Date(dateStr);
   date.setDate(date.getDate() + days);
   return date.toISOString().split('T')[0];

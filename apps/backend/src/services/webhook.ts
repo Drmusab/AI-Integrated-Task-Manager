@@ -15,6 +15,38 @@ import logger from '../utils/logger';
 const WEBHOOK_TIMEOUT_MS = 10000;
 
 /**
+ * Integration record from database
+ */
+interface Integration {
+  id: number;
+  name: string;
+  type: string;
+  config: string;
+  enabled: number;
+  created_by?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Webhook configuration
+ */
+interface WebhookConfig {
+  webhookUrl?: string;
+  apiKey?: string;
+}
+
+/**
+ * Webhook result
+ */
+interface WebhookResult {
+  success: boolean;
+  status?: number;
+  response?: unknown;
+  error?: string;
+}
+
+/**
  * Triggers a webhook by sending a POST request to the configured endpoint.
  * Retrieves webhook configuration from database, validates it, and sends the payload.
  * Supports optional API key authentication via Bearer token.
@@ -36,10 +68,10 @@ const WEBHOOK_TIMEOUT_MS = 10000;
  *   console.error('Webhook failed:', result.error);
  * }
  */
-const triggerWebhook = async (webhookId, payload) => {
+const triggerWebhook = async (webhookId: number, payload: Record<string, unknown>): Promise<WebhookResult> => {
   try {
     // Retrieve webhook configuration from database
-    const integration = await getAsync(
+    const integration = await getAsync<Integration>(
       'SELECT * FROM integrations WHERE id = ? AND type = ? AND enabled = 1',
       [webhookId, 'n8n_webhook']
     );
@@ -49,11 +81,12 @@ const triggerWebhook = async (webhookId, payload) => {
     }
 
     // Parse webhook configuration JSON
-    let config;
+    let config: WebhookConfig;
     try {
-      config = JSON.parse(integration.config);
-    } catch (error) {
-      logger.error('Invalid webhook configuration', { webhookId, error: error.message });
+      config = JSON.parse(integration.config) as WebhookConfig;
+    } catch (error: unknown) {
+      const err = error as Error;
+      logger.error('Invalid webhook configuration', { webhookId, error: err.message });
       return { success: false, error: 'Invalid webhook configuration' };
     }
 
@@ -70,7 +103,7 @@ const triggerWebhook = async (webhookId, payload) => {
     }
 
     // Prepare HTTP headers
-    const headers: any = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     };
 
@@ -90,15 +123,16 @@ const triggerWebhook = async (webhookId, payload) => {
       status: response.status,
       response: response.data,
     };
-  } catch (error) {
+  } catch (error: unknown) {
+    const err = error as Error & { code?: string };
     logger.error('Failed to trigger webhook', { 
       webhookId, 
-      error: error.message,
-      code: error.code 
+      error: err.message,
+      code: err.code 
     });
     return {
       success: false,
-      error: error.message,
+      error: err.message,
     };
   }
 };
@@ -111,7 +145,7 @@ const triggerWebhook = async (webhookId, payload) => {
  * @returns {boolean} True if valid HTTP/HTTPS URL, false otherwise
  * @private
  */
-const isValidUrl = (urlString) => {
+const isValidUrl = (urlString: string): boolean => {
   try {
     const url = new URL(urlString);
     return url.protocol === 'http:' || url.protocol === 'https:';
@@ -121,3 +155,4 @@ const isValidUrl = (urlString) => {
 };
 
 export { triggerWebhook };
+export type { WebhookResult };

@@ -2,13 +2,18 @@ import cron from 'node-cron';
 import {  db  } from '../utils/database';
 import {  triggerAutomation  } from './automation';
 import {  sendTaskDueNotification, sendRoutineReminder  } from './notifications';
-import {  createRecurringTask  } from './tasks';
+import {  createRecurringTask, OriginalTask  } from './tasks';
 import {  generateWeeklyReport, sendReportToN8n  } from './reporting';
 import { parseRecurringRule } from '../utils/recurringRule';
 
 // Time constants
 const MILLISECONDS_PER_MINUTE = 60 * 1000;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
+
+/**
+ * Task row from database - matches OriginalTask interface
+ */
+type TaskDbRow = OriginalTask;
 
 // Start the scheduler
 const startScheduler = () => {
@@ -75,7 +80,7 @@ const startScheduler = () => {
       // Get tasks with recurring rules
       db.all(
         'SELECT * FROM tasks WHERE recurring_rule IS NOT NULL',
-        async (err, tasks) => {
+        async (err, tasks: TaskDbRow[]) => {
           if (err) {
             console.error('Error checking recurring tasks:', err);
             return;
@@ -83,9 +88,8 @@ const startScheduler = () => {
           
           for (const task of tasks) {
             try {
-              const taskAny: any = task;
-              const recurringRule = parseRecurringRule(taskAny.recurring_rule);
-              const lastDueDate = new Date(taskAny.due_date);
+              const recurringRule = parseRecurringRule(task.recurring_rule);
+              const lastDueDate = new Date(task.due_date);
 
               // Check if we need to create a new instance of this recurring task
               if (shouldCreateRecurringTask(lastDueDate, recurringRule, today)) {
@@ -95,9 +99,8 @@ const startScheduler = () => {
                 sendRoutineReminder(task);
               }
             } catch (error) {
-              const errorAny: any = error;
-              const taskAny: any = task;
-              console.error(`Error processing recurring task ${taskAny.id}:`, errorAny);
+              const err = error as Error;
+              console.error(`Error processing recurring task ${task.id}:`, err);
             }
           }
         }
@@ -196,14 +199,24 @@ const startScheduler = () => {
   console.log('Task scheduler started');
 };
 
+/**
+ * Recurring rule interface for scheduler
+ */
+interface SchedulerRecurringRule {
+  frequency: string;
+  interval?: number;
+  endDate?: string;
+  maxOccurrences?: number;
+}
+
 // Check if a new instance of a recurring task should be created
-const shouldCreateRecurringTask = (lastDueDate, recurringRule, today) => {
+const shouldCreateRecurringTask = (lastDueDate: Date, recurringRule: SchedulerRecurringRule, today: string): boolean => {
   const nextDueDate = calculateNextDueDate(lastDueDate, recurringRule);
-  return nextDueDate && nextDueDate.toISOString().split('T')[0] === today;
+  return nextDueDate !== null && nextDueDate.toISOString().split('T')[0] === today;
 };
 
 // Calculate the next due date for a recurring task
-const calculateNextDueDate = (lastDueDate, recurringRule) => {
+const calculateNextDueDate = (lastDueDate: Date, recurringRule: SchedulerRecurringRule): Date | null => {
   if (!(lastDueDate instanceof Date) || Number.isNaN(lastDueDate.getTime())) {
     return null;
   }

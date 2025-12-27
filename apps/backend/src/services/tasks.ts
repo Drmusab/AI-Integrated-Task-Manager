@@ -21,7 +21,54 @@ import {  recordTaskHistory  } from '../utils/history';
  * isPositiveInteger(-1)   // Returns: false
  * isPositiveInteger(1.5)  // Returns: false
  */
-const isPositiveInteger = (value) => Number.isInteger(value) && value > 0;
+const isPositiveInteger = (value: unknown): value is number => 
+  typeof value === 'number' && Number.isInteger(value) && value > 0;
+
+/**
+ * Original task interface for recurring task creation
+ */
+export interface OriginalTask {
+  id?: number;
+  title: string;
+  description?: string | null;
+  column_id: number;
+  priority?: string | null;
+  due_date: string;
+  recurring_rule?: string | null;
+  created_by?: number | null;
+  assigned_to?: number | null;
+}
+
+/**
+ * Recurring rule interface
+ */
+interface RecurringRule {
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval?: number;
+  endDate?: string;
+  maxOccurrences?: number;
+}
+
+/**
+ * Database count result
+ */
+interface CountResult {
+  count: number;
+}
+
+/**
+ * Database max position result
+ */
+interface MaxPositionResult {
+  maxPosition: number;
+}
+
+/**
+ * Tag row result
+ */
+interface TagRow {
+  tag_id: number;
+}
 
 /**
  * Creates a new instance of a recurring task based on the original task and recurrence rule.
@@ -59,7 +106,7 @@ const isPositiveInteger = (value) => Number.isInteger(value) && value > 0;
  *   { frequency: 'daily', interval: 1, endDate: '2024-12-31T23:59:59Z' }
  * );
  */
-const createRecurringTask = async (originalTask, recurringRule) => {
+const createRecurringTask = async (originalTask: OriginalTask, recurringRule: RecurringRule): Promise<number | null> => {
   // Validate original task has due date
   if (!originalTask || !originalTask.due_date) {
     throw new Error('Cannot create recurring task without a valid due date');
@@ -119,7 +166,7 @@ const createRecurringTask = async (originalTask, recurringRule) => {
   // Check if max occurrences constraint is violated
   if (isPositiveInteger(maxOccurrences)) {
     const ruleToMatch = originalTask.recurring_rule || JSON.stringify(recurringRule);
-    const occurrencesRow = await getAsync(
+    const occurrencesRow = await getAsync<CountResult>(
       'SELECT COUNT(*) as count FROM tasks WHERE recurring_rule = ?',
       [ruleToMatch]
     );
@@ -130,7 +177,7 @@ const createRecurringTask = async (originalTask, recurringRule) => {
   }
 
   // Get next position in the column
-  const positionRow = await getAsync(
+  const positionRow = await getAsync<MaxPositionResult>(
     'SELECT MAX(position) as maxPosition FROM tasks WHERE column_id = ?',
     [originalTask.column_id]
   );
@@ -159,10 +206,10 @@ const createRecurringTask = async (originalTask, recurringRule) => {
   const taskId = insertResult.lastID;
 
   // Record task creation in history
-  recordTaskHistory(taskId, 'created', null, null, originalTask.created_by);
+  recordTaskHistory(taskId, 'created', null, null, originalTask.created_by ?? null);
 
   // Copy tags from original task to new task instance
-  const tagRows = await allAsync(
+  const tagRows = await allAsync<TagRow>(
     'SELECT tag_id FROM task_tags WHERE task_id = ?',
     [originalTask.id]
   );

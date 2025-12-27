@@ -30,11 +30,34 @@ export interface Task {
 }
 
 /**
+ * Tag entity interface
+ */
+export interface TagEntity {
+  id: number;
+  name: string;
+  color: string;
+  task_id?: number;
+}
+
+/**
+ * Subtask entity interface
+ */
+export interface SubtaskEntity {
+  id: number;
+  task_id: number;
+  title: string;
+  completed: number;
+  position: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
  * Task with related data (tags, subtasks)
  */
 export interface TaskWithDetails extends Task {
-  tags?: any[];
-  subtasks?: any[];
+  tags?: TagEntity[];
+  subtasks?: SubtaskEntity[];
   column_name?: string;
   swimlane_name?: string;
   created_by_name?: string;
@@ -75,7 +98,7 @@ export class TaskRepository extends BaseRepository<Task> {
   async findByIdWithDetails(id: number): Promise<TaskWithDetails | undefined> {
     try {
       // Get task with joins for related entities
-      const task = await this.executeQueryOne(`
+      const task = await this.executeQueryOne<TaskWithDetails>(`
         SELECT 
           t.*,
           c.name as column_name,
@@ -95,7 +118,7 @@ export class TaskRepository extends BaseRepository<Task> {
       }
 
       // Get tags
-      const tags = await this.executeQuery(`
+      const tags = await this.executeQuery<TagEntity>(`
         SELECT tg.*
         FROM task_tags tt
         JOIN tags tg ON tg.id = tt.tag_id
@@ -103,7 +126,7 @@ export class TaskRepository extends BaseRepository<Task> {
       `, [id]);
 
       // Get subtasks
-      const subtasks = await this.executeQuery(`
+      const subtasks = await this.executeQuery<SubtaskEntity>(`
         SELECT * FROM subtasks
         WHERE task_id = ?
         ORDER BY position ASC
@@ -114,9 +137,10 @@ export class TaskRepository extends BaseRepository<Task> {
         tags: tags || [],
         subtasks: subtasks || []
       };
-    } catch (error: any) {
-      logger.error('Error finding task by ID with details', { id, error: error.message });
-      throw new DatabaseError('Failed to fetch task details', error.message);
+    } catch (error: unknown) {
+      const err = error as Error;
+      logger.error('Error finding task by ID with details', { id, error: err.message });
+      throw new DatabaseError('Failed to fetch task details', err.message);
     }
   }
 
@@ -128,7 +152,7 @@ export class TaskRepository extends BaseRepository<Task> {
    */
   async findWithFilters(filters: TaskFilters): Promise<TaskWithDetails[]> {
     try {
-      const params: any[] = [];
+      const params: (string | number)[] = [];
       let query = `
         SELECT 
           t.*,
@@ -213,14 +237,14 @@ export class TaskRepository extends BaseRepository<Task> {
         params.push(filters.offset);
       }
 
-      const tasks = await this.executeQuery(query, params);
+      const tasks = await this.executeQuery<TaskWithDetails>(query, params);
 
       if (!tasks || tasks.length === 0) {
         return [];
       }
 
       // Get all task IDs for efficient tag/subtask loading
-      const taskIds = tasks.map((t: any) => t.id);
+      const taskIds = tasks.map((t) => t.id).filter((id): id is number => id !== undefined);
       
       // Load tags for all tasks in a single query (prevents N+1)
       const allTags = await this.getTagsForTasks(taskIds);
@@ -229,14 +253,15 @@ export class TaskRepository extends BaseRepository<Task> {
       const allSubtasks = await this.getSubtasksForTasks(taskIds);
 
       // Attach tags and subtasks to tasks
-      return tasks.map((task: any) => ({
+      return tasks.map((task) => ({
         ...task,
-        tags: allTags[task.id] || [],
-        subtasks: allSubtasks[task.id] || []
+        tags: task.id !== undefined ? allTags[task.id] || [] : [],
+        subtasks: task.id !== undefined ? allSubtasks[task.id] || [] : []
       }));
-    } catch (error: any) {
-      logger.error('Error finding tasks with filters', { filters, error: error.message });
-      throw new DatabaseError('Failed to fetch tasks', error.message);
+    } catch (error: unknown) {
+      const err = error as Error;
+      logger.error('Error finding tasks with filters', { filters, error: err.message });
+      throw new DatabaseError('Failed to fetch tasks', err.message);
     }
   }
 
@@ -245,18 +270,18 @@ export class TaskRepository extends BaseRepository<Task> {
    * @param taskIds - Array of task IDs
    * @returns Map of task ID to tags array
    */
-  private async getTagsForTasks(taskIds: number[]): Promise<{ [key: number]: any[] }> {
+  private async getTagsForTasks(taskIds: number[]): Promise<{ [key: number]: TagEntity[] }> {
     if (taskIds.length === 0) return {};
 
     const placeholders = taskIds.map(() => '?').join(',');
-    const tagRows = await this.executeQuery(`
+    const tagRows = await this.executeQuery<TagEntity & { task_id: number }>(`
       SELECT tt.task_id, tg.*
       FROM task_tags tt
       JOIN tags tg ON tg.id = tt.tag_id
       WHERE tt.task_id IN (${placeholders})
     `, taskIds);
 
-    const tagsByTask: { [key: number]: any[] } = {};
+    const tagsByTask: { [key: number]: TagEntity[] } = {};
     for (const row of tagRows) {
       if (!tagsByTask[row.task_id]) {
         tagsByTask[row.task_id] = [];
@@ -272,17 +297,17 @@ export class TaskRepository extends BaseRepository<Task> {
    * @param taskIds - Array of task IDs
    * @returns Map of task ID to subtasks array
    */
-  private async getSubtasksForTasks(taskIds: number[]): Promise<{ [key: number]: any[] }> {
+  private async getSubtasksForTasks(taskIds: number[]): Promise<{ [key: number]: SubtaskEntity[] }> {
     if (taskIds.length === 0) return {};
 
     const placeholders = taskIds.map(() => '?').join(',');
-    const subtaskRows = await this.executeQuery(`
+    const subtaskRows = await this.executeQuery<SubtaskEntity>(`
       SELECT * FROM subtasks
       WHERE task_id IN (${placeholders})
       ORDER BY position ASC
     `, taskIds);
 
-    const subtasksByTask: { [key: number]: any[] } = {};
+    const subtasksByTask: { [key: number]: SubtaskEntity[] } = {};
     for (const row of subtaskRows) {
       if (!subtasksByTask[row.task_id]) {
         subtasksByTask[row.task_id] = [];
@@ -320,9 +345,10 @@ export class TaskRepository extends BaseRepository<Task> {
       }
 
       return taskId;
-    } catch (error: any) {
-      logger.error('Error creating task with details', { error: error.message });
-      throw new DatabaseError('Failed to create task', error.message);
+    } catch (error: unknown) {
+      const err = error as Error;
+      logger.error('Error creating task with details', { error: err.message });
+      throw new DatabaseError('Failed to create task', err.message);
     }
   }
 
@@ -342,9 +368,10 @@ export class TaskRepository extends BaseRepository<Task> {
         `INSERT INTO task_tags (task_id, tag_id) VALUES ${values}`,
         params
       );
-    } catch (error: any) {
-      logger.error('Error adding tags to task', { taskId, tagIds, error: error.message });
-      throw new DatabaseError('Failed to add tags', error.message);
+    } catch (error: unknown) {
+      const err = error as Error;
+      logger.error('Error adding tags to task', { taskId, tagIds, error: err.message });
+      throw new DatabaseError('Failed to add tags', err.message);
     }
   }
 
@@ -366,9 +393,10 @@ export class TaskRepository extends BaseRepository<Task> {
           [taskId, subtasks[i].title, subtasks[i].completed ? 1 : 0, i]
         );
       }
-    } catch (error: any) {
-      logger.error('Error adding subtasks to task', { taskId, error: error.message });
-      throw new DatabaseError('Failed to add subtasks', error.message);
+    } catch (error: unknown) {
+      const err = error as Error;
+      logger.error('Error adding subtasks to task', { taskId, error: err.message });
+      throw new DatabaseError('Failed to add subtasks', err.message);
     }
   }
 

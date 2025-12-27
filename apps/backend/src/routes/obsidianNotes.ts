@@ -5,7 +5,7 @@
  * including backlinks with snippets and unified search.
  */
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import { noteService } from '../services/noteService';
 import { unifiedSearchService } from '../services/unifiedSearchService';
@@ -145,7 +145,7 @@ router.post('/', [
   body('contentMarkdown').optional().isString(),
   body('folderPath').optional().isString(),
   body('frontmatter').optional().isObject(),
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -227,7 +227,7 @@ router.delete('/:id', async (req, res) => {
  */
 router.get('/search/unified', [
   query('q').notEmpty().withMessage('Query parameter q is required'),
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -281,7 +281,7 @@ router.get('/search/unified', [
  */
 router.get('/search/quick', [
   query('q').notEmpty().withMessage('Query parameter q is required'),
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -311,7 +311,7 @@ router.post('/:id/link-task', [
   body('taskId').isInt().withMessage('Task ID must be an integer'),
   body('relationType').isIn(['reference', 'spec', 'meeting', 'evidence'])
     .withMessage('Invalid relation type'),
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -542,7 +542,7 @@ router.get('/templates/daily', async (req, res) => {
 router.put('/templates/daily', [
   body('content').notEmpty().withMessage('Template content is required'),
   body('frontmatter').optional().isObject(),
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
