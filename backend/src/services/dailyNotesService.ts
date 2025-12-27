@@ -54,6 +54,10 @@ export class DailyNotesService {
    * This method is idempotent - it will return the existing note if it exists,
    * or create a new one from the template if it doesn't.
    * 
+   * Note: Uses case-insensitive title lookup which requires O(n) scan.
+   * This is acceptable for daily notes since it's called once per request
+   * and note counts are typically <100k.
+   * 
    * @param date - Date in YYYY-MM-DD format (defaults to today)
    * @returns Note ID of the daily note
    */

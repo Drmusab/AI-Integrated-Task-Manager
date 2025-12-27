@@ -162,6 +162,9 @@ export class GraphService {
       }
       
       // Get all links from this note (outgoing)
+      // Note: Separate queries for outgoing/incoming is intentional for BFS.
+      // Each query is O(links_per_node) with indexed lookups, which is faster
+      // than a complex batched query for typical graph sizes (<10k nodes).
       const outgoingLinks = await allAsync(
         `SELECT nl.id, nl.target_note_id, nl.link_type, n.title
          FROM obsidian_note_links nl
@@ -240,36 +243,23 @@ export class GraphService {
    * @returns Array of unresolved links with counts
    */
   async getUnresolvedLinks(): Promise<UnresolvedLink[]> {
+    // Use a single query with MIN to get the first source for each unresolved target
     const rows = await allAsync(
-      `SELECT nl.unresolved_target, nl.source_note_id, COUNT(*) as count
+      `SELECT 
+         nl.unresolved_target as missingTitle,
+         MIN(nl.source_note_id) as sourceNoteId,
+         COUNT(*) as count
        FROM obsidian_note_links nl
        WHERE nl.target_note_id IS NULL AND nl.unresolved_target IS NOT NULL
        GROUP BY nl.unresolved_target
        ORDER BY count DESC, nl.unresolved_target`
     );
     
-    // Get first source note ID for each unresolved target
-    const unresolvedMap = new Map<string, UnresolvedLink>();
-    
-    for (const row of rows as any[]) {
-      if (!unresolvedMap.has(row.unresolved_target)) {
-        // Get the first source note for this unresolved target
-        const sourceLink = await getAsync(
-          `SELECT source_note_id FROM obsidian_note_links 
-           WHERE unresolved_target = ? AND target_note_id IS NULL
-           LIMIT 1`,
-          [row.unresolved_target]
-        );
-        
-        unresolvedMap.set(row.unresolved_target, {
-          sourceNoteId: sourceLink?.source_note_id || '',
-          missingTitle: row.unresolved_target,
-          count: row.count,
-        });
-      }
-    }
-    
-    return Array.from(unresolvedMap.values());
+    return rows.map((row: any) => ({
+      sourceNoteId: row.sourceNoteId,
+      missingTitle: row.missingTitle,
+      count: row.count,
+    }));
   }
   
   /**
