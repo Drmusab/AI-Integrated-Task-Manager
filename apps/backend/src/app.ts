@@ -7,7 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
-import cookieParser from 'cookie-parser';
+
 
 dotenv.config();
 
@@ -48,7 +48,7 @@ import {  requestTimer  } from './middleware/performance';
 import logger from './utils/logger';
 import { initializeBlockSystem } from './services/blockSystem';
 import { CollaborationServer } from './services/collaborationServer';
-import { csrfProtection } from './middleware/csrf';
+
 import { sanitizeRequest } from './middleware/sanitization';
 import { rateLimiters } from './middleware/rateLimiter';
 import { runStartupMigrations } from './services/versioning';
@@ -112,8 +112,8 @@ app.use(cors({
   origin: config.FRONTEND_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-API-Key'],
-  exposedHeaders: ['X-CSRF-Token', 'RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  exposedHeaders: ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset']
 }));
 
 // Performance monitoring middleware (disabled in test environment)
@@ -121,8 +121,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(requestTimer);
 }
 
-// Cookie parser middleware - required for CSRF protection
-app.use(cookieParser());
+
 
 // General API rate limiting - 100 requests per 15 minutes per IP
 app.use('/api/', rateLimiters.general);
@@ -160,11 +159,7 @@ app.use(mongoSanitize({
 // Request sanitization middleware - protects against XSS
 app.use(sanitizeRequest);
 
-// CSRF protection middleware (applied after body parsing)
-// Disabled in test environment and for specific paths
-if (process.env.NODE_ENV !== 'test') {
-  app.use(csrfProtection);
-}
+
 
 // Static files middleware - serves uploaded attachments
 app.use('/attachments', express.static(path.join(__dirname, '../attachments')));
@@ -251,7 +246,7 @@ if (process.env.NODE_ENV !== 'test') {
       logger.info(`Server running on port ${PORT}`);
       logger.info(`Environment: ${config.NODE_ENV}`);
       logger.info(`Cache enabled: ${config.ENABLE_CACHE}`);
-      logger.info(`CSRF protection: ${env.isProduction() ? 'enabled' : 'disabled'}`);
+
       logger.info(`Collaboration server ready for WebSocket connections`);
       startScheduler();
     });
