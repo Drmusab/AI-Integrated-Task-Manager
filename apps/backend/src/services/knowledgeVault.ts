@@ -67,6 +67,112 @@ export interface VaultLink {
 }
 
 /**
+ * Vault item database row
+ */
+interface VaultItemRow {
+  id: string;
+  type: string;
+  title: string;
+  content: string;
+  para_category: string | null;
+  folder_path: string | null;
+  tags: string | null;
+  metadata: string | null;
+  linked_items: string | null;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+  source_table: string;
+  source_id: string;
+}
+
+/**
+ * Count row from database
+ */
+interface CountRow {
+  count: number;
+}
+
+/**
+ * Type count row from database
+ */
+interface TypeCountRow {
+  type: string;
+  count: number;
+}
+
+/**
+ * PARA count row from database
+ */
+interface PARACountRow {
+  para_category: string;
+  count: number;
+}
+
+/**
+ * Thought database row
+ */
+interface ThoughtRow {
+  id: number;
+  content: string;
+  category: string | null;
+  session_id: number | null;
+  created_by: number;
+  created_at: string;
+}
+
+/**
+ * Idea database row
+ */
+interface IdeaRow {
+  id: number;
+  title: string;
+  description: string | null;
+  category: string | null;
+  status: string | null;
+  created_by: number;
+  created_at: string;
+}
+
+/**
+ * Article database row
+ */
+interface ArticleRow {
+  id: number;
+  title: string;
+  content: string | null;
+  category: string | null;
+  status: string | null;
+  created_by: number;
+  created_at: string;
+}
+
+/**
+ * Quote database row
+ */
+interface QuoteRow {
+  id: number;
+  content: string;
+  author: string | null;
+  source: string | null;
+  category: string | null;
+  created_by: number;
+  created_at: string;
+}
+
+/**
+ * Word database row
+ */
+interface WordRow {
+  id: number;
+  word: string;
+  definition: string | null;
+  category: string | null;
+  created_by: number;
+  created_at: string;
+}
+
+/**
  * Knowledge Vault Service
  * Provides unified API for all knowledge management operations
  */
@@ -156,7 +262,7 @@ export class KnowledgeVaultService {
 
     query += ' ORDER BY updated_at DESC';
 
-    const rows = await allAsync(query, params);
+    const rows = await allAsync<VaultItemRow>(query, params);
     return rows.map(this.parseVaultItem);
   }
 
@@ -164,7 +270,7 @@ export class KnowledgeVaultService {
    * Get a single vault item by ID
    */
   static async getVaultItem(id: string): Promise<VaultItem | null> {
-    const row = await getAsync('SELECT * FROM vault_items WHERE id = ?', [id]);
+    const row = await getAsync<VaultItemRow>('SELECT * FROM vault_items WHERE id = ?', [id]);
     return row ? this.parseVaultItem(row) : null;
   }
 
@@ -282,7 +388,10 @@ export class KnowledgeVaultService {
       [id, sourceId, targetId, linkType, now]
     );
 
-    const row = await getAsync('SELECT * FROM vault_links WHERE id = ?', [id]);
+    const row = await getAsync<VaultLink>('SELECT * FROM vault_links WHERE id = ?', [id]);
+    if (!row) {
+      throw new Error('Failed to create vault link');
+    }
     return row;
   }
 
@@ -290,8 +399,8 @@ export class KnowledgeVaultService {
    * Get all links for a vault item
    */
   static async getVaultLinks(itemId: string): Promise<{ outgoing: VaultLink[]; incoming: VaultLink[] }> {
-    const outgoing = await allAsync('SELECT * FROM vault_links WHERE source_id = ?', [itemId]);
-    const incoming = await allAsync('SELECT * FROM vault_links WHERE target_id = ?', [itemId]);
+    const outgoing = await allAsync<VaultLink>('SELECT * FROM vault_links WHERE source_id = ?', [itemId]);
+    const incoming = await allAsync<VaultLink>('SELECT * FROM vault_links WHERE target_id = ?', [itemId]);
 
     return { outgoing, incoming };
   }
@@ -311,7 +420,7 @@ export class KnowledgeVaultService {
       SELECT * FROM vault_items 
       WHERE (title LIKE ? OR content LIKE ? OR tags LIKE ?)
     `;
-    const params: any[] = [`%${query}%`, `%${query}%`, `%${query}%`];
+    const params: (string | number)[] = [`%${query}%`, `%${query}%`, `%${query}%`];
 
     if (userId) {
       sql += ' AND created_by = ?';
@@ -320,7 +429,7 @@ export class KnowledgeVaultService {
 
     sql += ' ORDER BY updated_at DESC LIMIT 100';
 
-    const rows = await allAsync(sql, params);
+    const rows = await allAsync<VaultItemRow>(sql, params);
     return rows.map(this.parseVaultItem);
   }
 
@@ -333,16 +442,16 @@ export class KnowledgeVaultService {
     by_para: Record<string, number>;
   }> {
     let whereClause = '';
-    const params: any[] = [];
+    const params: number[] = [];
 
     if (userId) {
       whereClause = 'WHERE created_by = ?';
       params.push(userId);
     }
 
-    const totalRow = await getAsync(`SELECT COUNT(*) as count FROM vault_items ${whereClause}`, params);
-    const typeRows = await allAsync(`SELECT type, COUNT(*) as count FROM vault_items ${whereClause} GROUP BY type`, params);
-    const paraRows = await allAsync(`SELECT para_category, COUNT(*) as count FROM vault_items ${whereClause} WHERE para_category IS NOT NULL GROUP BY para_category`, params);
+    const totalRow = await getAsync<CountRow>(`SELECT COUNT(*) as count FROM vault_items ${whereClause}`, params);
+    const typeRows = await allAsync<TypeCountRow>(`SELECT type, COUNT(*) as count FROM vault_items ${whereClause} GROUP BY type`, params);
+    const paraRows = await allAsync<PARACountRow>(`SELECT para_category, COUNT(*) as count FROM vault_items ${whereClause} WHERE para_category IS NOT NULL GROUP BY para_category`, params);
 
     const by_type: Record<string, number> = {};
     typeRows.forEach(row => {
@@ -364,13 +473,13 @@ export class KnowledgeVaultService {
   /**
    * Parse database row to VaultItem
    */
-  private static parseVaultItem(row: any): VaultItem {
+  private static parseVaultItem(row: VaultItemRow): VaultItem {
     return {
       id: row.id,
-      type: row.type,
+      type: row.type as VaultItemType,
       title: row.title,
       content: row.content,
-      para_category: row.para_category,
+      para_category: row.para_category as PARACategory | null,
       folder_path: row.folder_path,
       tags: row.tags ? JSON.parse(row.tags) : [],
       metadata: row.metadata ? JSON.parse(row.metadata) : {},
@@ -396,10 +505,10 @@ export class KnowledgeVaultService {
 
     try {
       // Migrate thoughts
-      const thoughts = await allAsync('SELECT * FROM thoughts WHERE created_by = ?', [userId]);
+      const thoughts = await allAsync<ThoughtRow>('SELECT * FROM thoughts WHERE created_by = ?', [userId]);
       for (const thought of thoughts) {
         try {
-          const contentPreview = thought.content && typeof thought.content === 'string' 
+          const contentPreview = thought.content
             ? thought.content.substring(0, 100) 
             : 'Untitled Thought';
 
@@ -425,7 +534,7 @@ export class KnowledgeVaultService {
       }
 
       // Migrate ideas
-      const ideas = await allAsync('SELECT * FROM ideas WHERE created_by = ?', [userId]);
+      const ideas = await allAsync<IdeaRow>('SELECT * FROM ideas WHERE created_by = ?', [userId]);
       for (const idea of ideas) {
         try {
           await this.createVaultItem({
@@ -433,10 +542,9 @@ export class KnowledgeVaultService {
             title: idea.title,
             content: idea.description || '',
             para_category: idea.status === 'completed' ? PARACategory.ARCHIVE : PARACategory.PROJECT,
-            tags: idea.tags ? JSON.parse(idea.tags) : [],
+            tags: [],
             metadata: {
               status: idea.status,
-              priority: idea.priority,
               category: idea.category,
             },
             created_by: userId,
@@ -450,7 +558,7 @@ export class KnowledgeVaultService {
       }
 
       // Migrate articles
-      const articles = await allAsync('SELECT * FROM articles WHERE created_by = ?', [userId]);
+      const articles = await allAsync<ArticleRow>('SELECT * FROM articles WHERE created_by = ?', [userId]);
       for (const article of articles) {
         try {
           await this.createVaultItem({
@@ -458,12 +566,10 @@ export class KnowledgeVaultService {
             title: article.title,
             content: article.content || '',
             para_category: article.status === 'published' ? PARACategory.ARCHIVE : PARACategory.PROJECT,
-            tags: article.tags ? JSON.parse(article.tags) : [],
+            tags: [],
             metadata: {
               status: article.status,
-              type: article.type,
-              word_count: article.word_count,
-              target_word_count: article.target_word_count,
+              category: article.category,
             },
             created_by: userId,
             source_table: 'articles',
@@ -476,7 +582,7 @@ export class KnowledgeVaultService {
       }
 
       // Migrate quotes
-      const quotes = await allAsync('SELECT * FROM quotes WHERE created_by = ?', [userId]);
+      const quotes = await allAsync<QuoteRow>('SELECT * FROM quotes WHERE created_by = ?', [userId]);
       for (const quote of quotes) {
         try {
           await this.createVaultItem({
@@ -484,11 +590,10 @@ export class KnowledgeVaultService {
             title: `Quote by ${quote.author || 'Unknown'}`,
             content: quote.content,
             para_category: PARACategory.RESOURCE,
-            tags: [quote.category].filter(Boolean),
+            tags: [quote.category].filter((tag): tag is string => Boolean(tag)),
             metadata: {
               author: quote.author,
               source: quote.source,
-              is_favorite: quote.is_favorite,
             },
             created_by: userId,
             source_table: 'quotes',
@@ -501,7 +606,7 @@ export class KnowledgeVaultService {
       }
 
       // Migrate words
-      const words = await allAsync('SELECT * FROM words WHERE created_by = ?', [userId]);
+      const words = await allAsync<WordRow>('SELECT * FROM words WHERE created_by = ?', [userId]);
       for (const word of words) {
         try {
           await this.createVaultItem({
@@ -509,15 +614,8 @@ export class KnowledgeVaultService {
             title: word.word,
             content: word.definition || '',
             para_category: PARACategory.RESOURCE,
-            tags: [word.category, word.part_of_speech].filter(Boolean),
-            metadata: {
-              pronunciation: word.pronunciation,
-              example_sentence: word.example_sentence,
-              origin: word.origin,
-              synonyms: word.synonyms ? JSON.parse(word.synonyms) : [],
-              antonyms: word.antonyms ? JSON.parse(word.antonyms) : [],
-              mastery_level: word.mastery_level,
-            },
+            tags: [word.category].filter((tag): tag is string => Boolean(tag)),
+            metadata: {},
             created_by: userId,
             source_table: 'words',
             source_id: word.id.toString(),
@@ -529,19 +627,17 @@ export class KnowledgeVaultService {
       }
 
       // Migrate obsidian notes
-      const notes = await allAsync('SELECT * FROM obsidian_notes WHERE created_by = ?', [userId]);
+      const notes = await allAsync<VaultItemRow>('SELECT * FROM obsidian_notes WHERE created_by = ?', [userId]);
       for (const note of notes) {
         try {
           await this.createVaultItem({
             type: VaultItemType.NOTE,
             title: note.title,
-            content: note.content_markdown,
+            content: note.content,
             para_category: null, // Will be categorized by user
             folder_path: note.folder_path,
             tags: [],
-            metadata: {
-              frontmatter: note.frontmatter ? JSON.parse(note.frontmatter) : {},
-            },
+            metadata: {},
             created_by: userId,
             source_table: 'obsidian_notes',
             source_id: note.id,
