@@ -103,13 +103,14 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.desktop.prod
+      args:
+        # Empty string for production - uses relative URLs proxied by nginx
+        REACT_APP_API_URL: ""
     container_name: productivity-os-app
     profiles:
       - prod
     ports:
       - "3000:3000"
-    environment:
-      REACT_APP_API_URL: http://localhost:3001
     depends_on:
       api-prod:
         condition: service_healthy

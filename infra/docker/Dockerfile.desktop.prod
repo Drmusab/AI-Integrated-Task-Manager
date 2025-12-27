@@ -3,6 +3,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Build argument for API URL (empty string for production to use relative URLs)
+ARG REACT_APP_API_URL=
+
 # Copy package files
 COPY apps/desktop/package*.json ./
 
@@ -12,7 +15,8 @@ RUN npm ci
 # Copy source code
 COPY apps/desktop/ .
 
-# Build React app
+# Build React app with environment variable
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
 RUN npm run build
 
 # Production stage - Nginx to serve built assets
