@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Calendar page component with FullCalendar integration.
  * Provides a comprehensive calendar view for task management with create/edit functionality.

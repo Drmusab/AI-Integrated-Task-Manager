@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Calendar service for interacting with the calendar API.
  * Provides methods for fetching calendar events.

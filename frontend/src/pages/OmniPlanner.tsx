@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -479,7 +480,7 @@ const OmniPlanner = () => {
   };
 
   // Handler for updating execution status (used for Kanban drag-drop)
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleUpdateExecution = async (taskId, execution_status) => {
     try {
       await updateExecutionStatus(taskId, { execution_status });

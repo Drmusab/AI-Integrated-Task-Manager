@@ -39,6 +39,11 @@ import omniplannerRoutes from './routes/omniplanner';
 import chronosRoutes from './routes/chronos';
 import calendarRoutes from './routes/calendar';
 import databaseRoutes from './routes/database';
+import thoughtsRoutes from './routes/thoughts';
+import notesRoutes from './routes/notes';
+import ideasRoutes from './routes/ideas';
+import writingRoutes from './routes/writing';
+import utilitiesRoutes from './routes/utilities';
 import {  startScheduler  } from './services/scheduler';
 import {  requestTimer  } from './middleware/performance';
 import logger from './utils/logger';
@@ -144,6 +149,11 @@ app.use('/api/omniplanner', omniplannerRoutes);
 app.use('/api/chronos', chronosRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/databases', databaseRoutes);
+app.use('/api/thoughts', thoughtsRoutes);
+app.use('/api/notes', notesRoutes);
+app.use('/api/ideas', ideasRoutes);
+app.use('/api/writing', writingRoutes);
+app.use('/api/utilities', utilitiesRoutes);
 
 import {  errorHandler  } from './middleware/errorHandler';
 

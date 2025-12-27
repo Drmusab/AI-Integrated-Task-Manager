@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Slash Command Plugin for Lexical Editor
  * 

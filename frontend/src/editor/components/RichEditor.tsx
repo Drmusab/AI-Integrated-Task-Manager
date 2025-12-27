@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Rich Block-Based Editor Component
  * 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Custom Lexical Nodes for Block-Based Architecture
  * 

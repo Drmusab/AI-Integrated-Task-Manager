@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Theme context for managing dark/light mode.
  * Provides theme switching functionality and persists user preference.

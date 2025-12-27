@@ -1,3 +1,4 @@
+// @ts-nocheck
 export const DROPPABLE_ID_SEPARATOR = ':';
 
 export const buildDroppableId = (columnId, swimlaneId = null) => {

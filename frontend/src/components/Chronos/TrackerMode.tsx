@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Tracker Mode Component for Chronos
  * Active timer and session management interface

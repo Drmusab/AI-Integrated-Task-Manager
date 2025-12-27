@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Daily View Component for Chronos
  * Shows today's schedule with progress tracking

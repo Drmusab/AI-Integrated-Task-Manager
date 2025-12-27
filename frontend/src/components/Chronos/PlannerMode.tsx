@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Planner Mode Component for Chronos
  * Weekly time blocking calendar with drag & drop

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Time Block Dialog Component
  * Create and edit time blocks

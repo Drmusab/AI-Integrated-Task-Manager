@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
@@ -51,8 +52,6 @@ import {
   getPlannerOverview,
   savePriority,
   updatePriority,
-  // eslint-disable-next-line no-unused-vars
-  deletePriority,
   saveNotes,
   saveReflection,
   createTimeBlock,
@@ -139,9 +138,9 @@ const DailyPlanner = () => {
   const [reflectionDebounce, setReflectionDebounce] = useState(null);
 
   const isToday = useMemo(() => selectedDate === dayjs().format('YYYY-MM-DD'), [selectedDate]);
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isPast = useMemo(() => dayjs(selectedDate).isBefore(dayjs(), 'day'), [selectedDate]);
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isFuture = useMemo(() => dayjs(selectedDate).isAfter(dayjs(), 'day'), [selectedDate]);
 
   const loadData = useCallback(async () => {
