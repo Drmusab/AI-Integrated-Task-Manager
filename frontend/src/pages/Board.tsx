@@ -24,6 +24,7 @@ import {
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import dayjs from 'dayjs';
 
 import { getTasks, updateTask, createTask, deleteTask } from '../services/taskService';
 import {
@@ -220,16 +221,17 @@ const Board = () => {
     );
 
     try {
-      await updateTask(task.id, {
-        column_id: destinationLocation.columnId,
-        swimlane_id: destinationLocation.swimlaneId,
-        position: destination.index,
-      });
-
       setTasks(updatedTasks);
+
+      await persistTaskOrdering(
+        updatedTasks,
+        sourceLocation,
+        destinationLocation
+      );
       broadcastTasksChange();
       showSuccess('تم نقل المهمة بنجاح');
     } catch (error) {
+      setTasks(tasks);
       showError('فشل نقل المهمة');
       try {
         const tasksResponse = await getTasks({ boardId: id });
@@ -239,6 +241,109 @@ const Board = () => {
       }
     }
   };
+
+  const normalizeRecurringRule = (rule) => {
+    if (!rule) return null;
+    if (typeof rule === 'object') return rule;
+    try {
+      return JSON.parse(rule);
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const persistTaskOrdering = useCallback(async (updatedTaskList, sourceLocation, destinationLocation) => {
+    const buildLocationKey = (location) => `${location.columnId}:${location.swimlaneId ?? 'null'}`;
+    const seen = new Set();
+    const updates = [];
+
+    [sourceLocation, destinationLocation].forEach(location => {
+      if (!location) return;
+      const key = buildLocationKey(location);
+      if (seen.has(key)) return;
+      seen.add(key);
+
+      const tasksForLocation = updatedTaskList
+        .filter(task =>
+          task.column_id === location.columnId &&
+          (task.swimlane_id ?? null) === (location.swimlaneId ?? null)
+        )
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+
+      tasksForLocation.forEach((task, index) => {
+        updates.push(updateTask(task.id, {
+          column_id: location.columnId,
+          swimlane_id: location.swimlaneId,
+          position: index,
+          ...(task.recurring_rule
+            ? { recurring_rule: typeof task.recurring_rule === 'string'
+              ? task.recurring_rule
+              : JSON.stringify(task.recurring_rule)
+            }
+            : {})
+        }));
+      });
+    });
+
+    await Promise.all(updates);
+  }, []);
+
+  const ensureRoutineTasksReset = useCallback(async (currentTasks = []) => {
+    if (!board?.columns?.length) return;
+
+    const now = dayjs();
+    const defaultColumnId = board.columns[0]?.id;
+    const updates = [];
+    const updatedTasks = [...currentTasks];
+
+    currentTasks.forEach((task, index) => {
+      const recurringRule = normalizeRecurringRule(task.recurring_rule);
+      if (!recurringRule || recurringRule.status === 'paused') return;
+
+      const interval = Math.max(1, Number(recurringRule.interval) || 1);
+      const lastReset = recurringRule.lastResetAt ? dayjs(recurringRule.lastResetAt) : null;
+      const targetColumnId = recurringRule.columnId ?? defaultColumnId;
+      if (!targetColumnId) return;
+
+      const needsReset = (() => {
+        if (!lastReset) return true;
+        if (recurringRule.frequency === 'weekly') {
+          return now.diff(lastReset, 'week') >= interval;
+        }
+        if (recurringRule.frequency === 'custom') {
+          return now.diff(lastReset, 'day') >= interval;
+        }
+        return now.diff(lastReset, 'day') >= interval;
+      })();
+
+      if (!needsReset) return;
+
+      updates.push(updateTask(task.id, {
+        column_id: targetColumnId,
+        swimlane_id: null,
+        position: 0,
+        recurring_rule: JSON.stringify({ ...recurringRule, lastResetAt: now.toISOString() })
+      }));
+
+      updatedTasks[index] = {
+        ...task,
+        column_id: targetColumnId,
+        swimlane_id: null,
+        position: 0,
+        recurring_rule: { ...recurringRule, lastResetAt: now.toISOString() }
+      };
+    });
+
+    if (updates.length) {
+      setTasks(updatedTasks);
+      await Promise.all(updates);
+      broadcastTasksChange();
+    }
+  }, [board?.columns, broadcastTasksChange]);
+
+  useEffect(() => {
+    ensureRoutineTasksReset(tasks);
+  }, [tasks, ensureRoutineTasksReset]);
 
   const handleAddTask = (columnId, swimlaneId = null) => {
     const normalizedSwimlaneId = swimlaneId === undefined ? null : swimlaneId;
