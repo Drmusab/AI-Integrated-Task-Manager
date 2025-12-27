@@ -196,14 +196,24 @@ const startScheduler = () => {
   console.log('Task scheduler started');
 };
 
+/**
+ * Recurring rule interface for scheduler
+ */
+interface SchedulerRecurringRule {
+  frequency: string;
+  interval?: number;
+  endDate?: string;
+  maxOccurrences?: number;
+}
+
 // Check if a new instance of a recurring task should be created
-const shouldCreateRecurringTask = (lastDueDate, recurringRule, today) => {
+const shouldCreateRecurringTask = (lastDueDate: Date, recurringRule: SchedulerRecurringRule, today: string): boolean => {
   const nextDueDate = calculateNextDueDate(lastDueDate, recurringRule);
-  return nextDueDate && nextDueDate.toISOString().split('T')[0] === today;
+  return nextDueDate !== null && nextDueDate.toISOString().split('T')[0] === today;
 };
 
 // Calculate the next due date for a recurring task
-const calculateNextDueDate = (lastDueDate, recurringRule) => {
+const calculateNextDueDate = (lastDueDate: Date, recurringRule: SchedulerRecurringRule): Date | null => {
   if (!(lastDueDate instanceof Date) || Number.isNaN(lastDueDate.getTime())) {
     return null;
   }

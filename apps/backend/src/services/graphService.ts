@@ -126,7 +126,7 @@ export class GraphService {
     }
     
     // Get origin note
-    const originNote = await getAsync(
+    const originNote = await getAsync<NoteRow>(
       'SELECT id, title FROM obsidian_notes WHERE id = ?',
       [noteId]
     );

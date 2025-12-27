@@ -141,7 +141,7 @@ export class VaultBridgeService {
         title: `Quote by ${quote.author || 'Unknown'}`,
         content: quote.content,
         para_category: PARACategory.RESOURCE,
-        tags: [quote.category].filter(Boolean),
+        tags: [quote.category].filter((tag): tag is string => Boolean(tag)),
         metadata: {
           author: quote.author,
           source: quote.source,
@@ -169,7 +169,7 @@ export class VaultBridgeService {
         title: word.word,
         content: word.definition || '',
         para_category: PARACategory.RESOURCE,
-        tags: [word.category, word.part_of_speech].filter(Boolean),
+        tags: [word.category, word.part_of_speech].filter((tag): tag is string => Boolean(tag)),
         metadata: {
           pronunciation: word.pronunciation,
           example_sentence: word.example_sentence,
