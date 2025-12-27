@@ -35,6 +35,7 @@ import {
   Lightbulb,
   Edit,
   Build,
+  AccountTree,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,6 +74,7 @@ const Navbar: React.FC = () => {
   }
 
   const navItems = [
+    { path: '/vault', icon: <AccountTree />, label: 'Knowledge Vault' },
     { path: '/omniplanner', icon: <ViewKanban />, label: 'OmniPlanner' },
     { path: '/planner', icon: <Today />, label: 'المخطط اليومي' },
     { path: '/boards', icon: <Dashboard />, label: 'اللوحات' },

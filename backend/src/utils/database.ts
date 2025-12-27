@@ -128,6 +128,10 @@ const initDatabase = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     db.serialize(async () => {
       try {
+        // Initialize Knowledge Vault tables first
+        const { KnowledgeVaultService } = await import('../services/knowledgeVault');
+        await KnowledgeVaultService.initializeVault();
+
         // Users table
         await runAsync(`CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
