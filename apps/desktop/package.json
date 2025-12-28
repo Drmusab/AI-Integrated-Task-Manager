@@ -41,7 +41,8 @@
     "uuid": "^13.0.0",
     "web-vitals": "^3.4.0",
     "y-websocket": "^3.0.0",
-    "yjs": "^13.6.28"
+    "yjs": "^13.6.28",
+    "zod": "^3.22.4"
   },
   "scripts": {
     "start": "react-scripts start",
